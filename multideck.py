@@ -12,6 +12,8 @@ Dependencies
     * `random`
 """
 
+
+import itertools
 import random
 
 # model-level constants
@@ -159,11 +161,10 @@ class MultiDeck(object):
         return len(self.cards)
 
     def reset(self):
-        self.cards = []
-        for _ in range(self.num_decks):
-            for suit in SUITS:
-                for rank in range(13):
-                    self.cards.append(Card(1 + rank, suit))
+        self.cards = [
+            Card(1 + rank, suit) for _, suit, rank in itertools.product(range(self.num_decks), SUITS, range(13))
+        ]
+
         self.shuffle()
 
     def shuffle(self):

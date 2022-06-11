@@ -19,37 +19,37 @@ class Hand(object):
 
     Properties
     ----------
-    name : string
-        distinguish 'players' by name
-    game : Game (check this)
-        the current game in play
-    verbose : bool (consider removing)
-        print to the console. inherited from game
-    deck : MultiDeck (consider removing)
-        the deck to take cards from. inherited from game
-    hand : list
-        the collection of Cards that the House has
-    value : list
-        the list-value of the hand accounting for aces. Used in both Dealer and Player
-    blackjack : bool
-        whether the Dealer has a blackjack or not
-    bust : bool
-        whether the Dealer is bust or not
+    name: string
+        Distinguish 'players' by name
+    game: Game (check this)
+        The current game in play
+    verbose: bool (consider removing)
+        Print to the console. Inherited from `game`
+    deck: MultiDeck (consider removing)
+        The deck to take cards from. Inherited from `game`
+    hand: list
+        The collection of Cards that the House has
+    value: list
+        The list-value of the hand accounting for aces. Used in both Dealer and Player
+    blackjack: bool
+        Whether the Dealer has a blackjack or not
+    bust: bool
+        Whether the Dealer is bust or not
 
     Methods
     -------
     clear_cards
-        clear all the cards for the hand
+        Clear all the cards for the hand
     deal
-        if card hit twice
+        If card hit twice
     hit
-        take 1 card from the deck
+        Take 1 card from the deck
     hit_by_key
-        take 1 card from the deck based on the given card key
+        Take 1 card from the deck based on the given card key
     evaluate
-        play the Dealer's hand
+        Play the Dealer's hand
     show_cards
-        print the Dealer's hand to the log
+        Print the Dealer's hand to the log
     """
 
     def __init__(self, game, player=None):
@@ -203,7 +203,7 @@ class PlayerHand(Hand):
         """Play the hand -- has 3 parts: player choices, evaluate, then feedback"""
         # split from aces should never come down here
         while self.playing:
-            print('Playing hand ' + str(self))
+            print(f'Playing hand {str(self)}')
 
             opt_key, opt_text = self.option_key
             if opt_key in ['bust', 'bj']:
@@ -275,7 +275,7 @@ class Player(object):
     """
     def __init__(self, game, name=None, money=500):
         self.game = game
-        self.name = name or 'Player_' + str(1 + game.player_count)
+        self.name = name or f'Player_{str(1 + game.player_count)}'
         self.money = money
         self.hands = []
         # TODO: need to include insurance somewhere
@@ -312,7 +312,7 @@ class Player(object):
         assert type(amount) == int
         self.money += amount
         if self.game.verbose:
-            print(self.name + ' ' + ['won', 'lost'][amount < 0] + ' ' + str(abs(amount)))
+            print(f'{self.name} ' + ['won', 'lost'][amount < 0] + ' ' + str(abs(amount)))
 
     def print_money(self):
         print(f'{self.name} has {str(self.money)} money')

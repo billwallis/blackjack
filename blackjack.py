@@ -40,20 +40,18 @@ class GameControl(object):
         return self  # inplace=False
 
     def add_deck(self, num_decks=6, init_empty=False) -> MultiDeck:
-        if self.deck is None:
-            new_deck = MultiDeck(num_decks=num_decks, init_empty=init_empty)
-            self.deck = new_deck
-            return new_deck
-        else:
+        if self.deck is not None:
             raise ValueError('A deck already exists in this game')
+        new_deck = MultiDeck(num_decks=num_decks, init_empty=init_empty)
+        self.deck = new_deck
+        return new_deck
 
     def add_dealer(self) -> Dealer:
-        if self.dealer is None:
-            new_dealer = Dealer(game=self)
-            self.dealer = new_dealer
-            return new_dealer
-        else:
+        if self.dealer is not None:
             raise ValueError('A dealer already exists in this game')
+        new_dealer = Dealer(game=self)
+        self.dealer = new_dealer
+        return new_dealer
 
     def add_player(self, name=None, money=500) -> Player:
         if name in [p.name for p in self.players]:
