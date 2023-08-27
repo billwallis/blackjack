@@ -10,8 +10,8 @@ Dependencies
 """
 
 
-from multideck import MultiDeck
-from players import Dealer, Player
+from blackjack.multideck import MultiDeck
+from blackjack.players import Dealer, Player
 
 
 class GameControl(object):
