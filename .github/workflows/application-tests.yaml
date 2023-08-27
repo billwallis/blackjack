@@ -4,8 +4,8 @@ run-name: Application tests 🧪
 on: [workflow_dispatch, pull_request]
 
 jobs:
-  linting-and-formatting:
-    name: Run linters and check formatting
+  run-tests:
+    name: Run tests
     runs-on: windows-latest
     steps:
       - name: 🛎️ Check out repository
