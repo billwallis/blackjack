@@ -90,6 +90,7 @@ repos:
         args: ["-rn", "--rcfile=pyproject.toml"]
         exclude: "^.*$" # Exclude everything for now
 
+
   # Testing and coverage
 #  - repo: local
 #    hooks:
