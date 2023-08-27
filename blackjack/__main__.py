@@ -1,4 +1,3 @@
-
 from blackjack.game import GameControl
 
 
@@ -16,5 +15,5 @@ def main() -> None:
     game.play_round()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

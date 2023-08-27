@@ -17,17 +17,17 @@ import itertools
 import random
 
 # model-level constants
-FACES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K']
-SUITS = ['C', 'D', 'H', 'S']
-SUITS_IMG = ['♠', '♥', '♣', '♦']
-SUITS_TEXT = ['Club', 'Diamond', 'Heart', 'Spade']
+FACES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"]
+SUITS = ["C", "D", "H", "S"]
+SUITS_IMG = ["♠", "♥", "♣", "♦"]
+SUITS_TEXT = ["Club", "Diamond", "Heart", "Spade"]
 
 ###
 # consider including jokers in the future (not suited, but one red and one black)
 ###
 
 
-class Card(object):
+class Card:
     """
     A class to represent a playing card from the French-suited, standard 52-card pack
 
@@ -58,6 +58,7 @@ class Card(object):
         construct the instance using the 2-character string corresponding to face and suit
 
     """
+
     def __init__(self, rank: int, suit: str):
         """
         Parameters
@@ -67,14 +68,14 @@ class Card(object):
         if rank in range(1, 14):
             self.rank = rank
         else:
-            raise ValueError(f'Bad rank argument passed: {rank}')
+            raise ValueError(f"Bad rank argument passed: {rank}")
         if suit in SUITS:
             self.suit = suit
         else:
-            raise ValueError(f'Bad suit argument passed: {suit}')
+            raise ValueError(f"Bad suit argument passed: {suit}")
 
     def __repr__(self):
-        return f'Card(rank={self.rank}, suit={self.suit})'
+        return f"Card(rank={self.rank}, suit={self.suit})"
 
     def __str__(self):
         return self.key
@@ -93,11 +94,11 @@ class Card(object):
 
     @property
     def colour(self) -> int:
-        return int((self.suit in ['C', 'S']))
+        return int(self.suit in ["C", "S"])
 
     @property
     def colour_text(self) -> str:
-        return ['red', 'black'][self.colour]
+        return ["red", "black"][self.colour]
 
     @property
     def key(self) -> str:
@@ -109,7 +110,7 @@ class Card(object):
         return cls(rank, key[1])
 
 
-class MultiDeck(object):
+class MultiDeck:
     """
     A class to represent a multiple sets of 52-card French-suited deck that may or may not have all cards in them
 
@@ -133,6 +134,7 @@ class MultiDeck(object):
         IndexError if the card has already been removed from the deck
 
     """
+
     def __init__(self, num_decks: int = 1, init_empty: bool = False):
         """
         Parameters
@@ -162,7 +164,10 @@ class MultiDeck(object):
 
     def reset(self):
         self.cards = [
-            Card(1 + rank, suit) for _, suit, rank in itertools.product(range(self.num_decks), SUITS, range(13))
+            Card(1 + rank, suit)
+            for _, suit, rank in itertools.product(
+                range(self.num_decks), SUITS, range(13)
+            )
         ]
 
         self.shuffle()
