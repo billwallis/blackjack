@@ -1,0 +1,54 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry]
+name = "blackjack"
+version = "0.0.0"
+description = "Implementing blackjack, also called 21."
+readme = "README.md"
+authors = ["Bilbottom"]
+repository = "https://github.com/Bilbottom/blackjack"
+packages = [{include = "blackjack"}]
+
+[tool.poetry.scripts]
+blackjack = "blackjack.__main__:main"
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+coverage-badge = "^1.1.0"
+pre-commit = "^3.3.3"
+pylint = "^2.17.5"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+
+
+[tool.pytest.ini_options]
+addopts = "--cov=blackjack --cov-report term-missing --cov-fail-under=60"
+testpaths = [
+    "tests",
+]
+
+
+[tool.isort]
+profile = "black"
+
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.MASTER]
+ignore-paths = "^tests/.*$"
+disable = ["no-else-return", "no-else-raise"]
