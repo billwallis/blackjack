@@ -11,7 +11,7 @@ Dependencies
 """
 
 
-class Hand(object):
+class Hand:
     """
     A class to represent the hands (House and player) in Blackjack
 
@@ -63,11 +63,11 @@ class Hand(object):
         self.cards = []
 
     def __str__(self):
-        hand_string = ' '.join(str(card) for card in self.cards)
-        return f'[{hand_string}] {self.value}'
+        hand_string = " ".join(str(card) for card in self.cards)
+        return f"[{hand_string}] {self.value}"
 
     def __repr__(self):
-        return f'Dealer(game={self.game})'
+        return f"Dealer(game={self.game})"
 
     def __len__(self):
         return len(self.cards)
@@ -111,7 +111,7 @@ class Hand(object):
         if len(self) == 0:
             [self.hit() for _ in range(2)]
         else:
-            raise ValueError('This hand has already been dealt to')
+            raise ValueError("This hand has already been dealt to")
 
     def _hit_by_key(self, key):
         """For debugging and testing"""
@@ -123,13 +123,15 @@ class Hand(object):
 
     def evaluate(self):
         """Empty method that must be overridden by subclasses"""
-        raise NotImplementedError('The evaluate method needs to be implemented for this subclass')
+        raise NotImplementedError(
+            "The evaluate method needs to be implemented for this subclass"
+        )
 
     def show_cards(self):
         """Print the cards in the hand to the terminal in a human-readable way"""
         # hand_string = ' '.join(str(card) for card in self.cards)
         # print(f'{self.player.name}\'s hand:\n\t[{hand_string}] {self.value}')
-        print(f'{self.player.name}\'s hand:')
+        print(f"{self.player.name}'s hand:")
         print(f'\t[{" ".join(str(card) for card in self.cards)}] {self.value}')
 
 
@@ -143,9 +145,9 @@ class Dealer(Hand):
 
     def __str__(self):
         if len(self) == 0:
-            return '[]'
+            return "[]"
         else:
-            return f'Dealer\'s hand:\n\t[{self.cards[0]} ??] [{self.cards[0].value}]\n'
+            return f"Dealer's hand:\n\t[{self.cards[0]} ??] [{self.cards[0].value}]\n"
 
     def evaluate(self):
         while True:
@@ -156,19 +158,20 @@ class Dealer(Hand):
             self.hit()
 
     def show_cards(self):
-        hand_string = ' '.join(str(card) for card in self.cards)
-        print(f'Dealer\'s hand:\n\t[{hand_string}] {self.value}\n')
+        hand_string = " ".join(str(card) for card in self.cards)
+        print(f"Dealer's hand:\n\t[{hand_string}] {self.value}\n")
 
 
 class PlayerHand(Hand):
     """
     A class to represent the player's hand(s) in Blackjack. Inherits Hand
     """
+
     def __init__(self, player, bet):
         super().__init__(player.game, player)
         self.bet = bet
         self.from_split = False
-        self.outcome = ''
+        self.outcome = ""
         self.playing = True
 
     @property
@@ -185,46 +188,46 @@ class PlayerHand(Hand):
             *      'h-s': Hit, Stand
         """
         if self.bust:
-            return 'bust', 'Bust! You lose'
+            return "bust", "Bust! You lose"
         elif self.blackjack:
             if self.player.game.dealer.cards[0].value == 1:
-                return 't-s', 'Take 1:1 payout [t] or stand [s]?'
+                return "t-s", "Take 1:1 payout [t] or stand [s]?"
             else:
-                return 'bj', 'Blackjack! You win'
+                return "bj", "Blackjack! You win"
         elif len(self) == 2 and self.player.money > self.bet:
             if self[0].value == self[1].value:
-                return 'h-s-d-sp', 'Hit [h], stand [s], double down [d], or split [sp]?'
+                return "h-s-d-sp", "Hit [h], stand [s], double down [d], or split [sp]?"
             else:
-                return 'h-s-d', 'Hit [h], stand [s], or double down [d]?'
+                return "h-s-d", "Hit [h], stand [s], or double down [d]?"
         else:
-            return 'h-s', 'Hit [h] or stand [s]?'
+            return "h-s", "Hit [h] or stand [s]?"
 
     def play_hand(self):
         """Play the hand -- has 3 parts: player choices, evaluate, then feedback"""
         # split from aces should never come down here
         while self.playing:
-            print(f'Playing hand {str(self)}')
+            print(f"Playing hand {str(self)}")
 
             opt_key, opt_text = self.option_key
-            if opt_key in ['bust', 'bj']:
+            if opt_key in ["bust", "bj"]:
                 self.playing = False
                 break
 
             decision_key = input(opt_text).upper()
 
-            if decision_key == 'T':
+            if decision_key == "T":
                 self.playing = False
-            elif decision_key == 'H':
+            elif decision_key == "H":
                 self.hit()
-            elif decision_key == 'S':
+            elif decision_key == "S":
                 self.playing = False
-            elif decision_key == 'D':
+            elif decision_key == "D":
                 self.hit()
                 self.playing = False
-            elif decision_key == 'SP':
+            elif decision_key == "SP":
                 self.split()
             else:
-                print(f'Key {opt_key} not recognised, try again.')
+                print(f"Key {opt_key} not recognised, try again.")
 
         self.evaluate()
         # self.provide_feedback()
@@ -234,30 +237,32 @@ class PlayerHand(Hand):
         dealer_value = max(self.player.game.dealer.value)
 
         if hand_value > 21:
-            self.outcome = 'lose'
+            self.outcome = "lose"
         elif self.player.dealer.blackjack:
             if self.blackjack:
-                self.outcome = 'draw'
+                self.outcome = "draw"
             else:
                 # assuming that dealer blackjack beats player 21
-                print('Dealer has blackjack')
-                self.outcome = 'lose'
+                print("Dealer has blackjack")
+                self.outcome = "lose"
         elif dealer_value > 21:
-            self.outcome = 'win'
+            self.outcome = "win"
         elif hand_value < dealer_value:
-            self.outcome = 'lose'
+            self.outcome = "lose"
         elif hand_value == dealer_value:
-            self.outcome = 'draw'
+            self.outcome = "draw"
         elif hand_value > dealer_value:
-            self.outcome = 'win'
+            self.outcome = "win"
         else:
-            raise AssertionError('Unexpected value in \'outcome\' property')
+            raise AssertionError("Unexpected value in 'outcome' property")
 
     def split(self):
         if len(self) != 2:
-            raise AssertionError(f'Can\'t split a hand with {len(self)} cards')
+            raise AssertionError(f"Can't split a hand with {len(self)} cards")
         elif self[0].rank != self[1].rank:
-            raise AssertionError(f'Can\'t split a hand with cards {self[0]} and {self[1]}')
+            raise AssertionError(
+                f"Can't split a hand with cards {self[0]} and {self[1]}"
+            )
 
         new_hand = self.player.add_hand(bet=self.bet)
         new_hand.cards.append(self.cards.pop(1))
@@ -269,24 +274,25 @@ class PlayerHand(Hand):
             new_hand.playing = False
 
 
-class Player(object):
+class Player:
     """
     Docs here
     """
+
     def __init__(self, game, name=None, money=500):
         self.game = game
-        self.name = name or f'Player_{str(1 + game.player_count)}'
+        self.name = name or f"Player_{str(1 + game.player_count)}"
         self.money = money
         self.hands = []
         # TODO: need to include insurance somewhere
         self.insurance = 0
 
     def __str__(self):
-        use_s = ['', 's']
-        ret_str = f'{self.name} has £{self.money} with hand{use_s[len(self) != 1]}:'
+        use_s = ["", "s"]
+        ret_str = f"{self.name} has £{self.money} with hand{use_s[len(self) != 1]}:"
         for hand in self.hands:
-            ret_str += f'\n\t {hand}  stake: £{hand.bet}'
-        return ret_str + '\n'
+            ret_str += f"\n\t {hand}  stake: £{hand.bet}"
+        return ret_str + "\n"
 
     def __len__(self):
         return len(self.hands)
@@ -312,10 +318,12 @@ class Player(object):
         assert type(amount) == int
         self.money += amount
         if self.game.verbose:
-            print(f'{self.name} ' + ['won', 'lost'][amount < 0] + ' ' + str(abs(amount)))
+            print(
+                f"{self.name} " + ["won", "lost"][amount < 0] + " " + str(abs(amount))
+            )
 
     def print_money(self):
-        print(f'{self.name} has {str(self.money)} money')
+        print(f"{self.name} has {str(self.money)} money")
 
     @classmethod
     def new(cls, *args, **kwargs):
