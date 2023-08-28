@@ -1,0 +1,292 @@
+"""
+Test the ``blackjack/deck`` module.
+"""
+import itertools
+
+import pytest
+
+from blackjack import deck
+
+
+###
+# Suit tests
+###
+@pytest.mark.parametrize(
+    "suit_name",
+    [
+        "club",
+        "spade",
+        "heart",
+        "diamond",
+    ],
+)
+def test__suit(suit_name: str):
+    """
+    Test the construction of the ``Suit`` class.
+    """
+    suit = deck.Suit(suit_name)
+    assert suit.name == suit_name.upper()
+    assert suit.value == suit_name.lower()
+    assert suit.id == suit_name[0].upper()
+    assert str(suit) == suit_name
+    assert repr(suit) == f"<Suit.{suit.name}: '{suit.value}'>"
+
+
+@pytest.mark.parametrize(
+    "id_, suit",
+    [
+        ("C", deck.Suit.CLUB),
+        ("S", deck.Suit.SPADE),
+        ("H", deck.Suit.HEART),
+        ("D", deck.Suit.DIAMOND),
+    ],
+)
+def test__suit__from_id(id_: str, suit: deck.Suit):
+    """
+    Test the ``Suit.from_id()`` method.
+    """
+    assert deck.Suit.from_id(id_) == suit
+
+
+def test__suit__from_id__raises():
+    """
+    Test that the ``Suit.from_id()`` method throws and exception.
+    """
+    with pytest.raises(KeyError):
+        deck.Suit.from_id("X")
+
+
+@pytest.mark.parametrize(
+    "suit, image",
+    [
+        (deck.Suit.CLUB, "♣"),
+        (deck.Suit.SPADE, "♠"),
+        (deck.Suit.HEART, "♥"),
+        (deck.Suit.DIAMOND, "♦"),
+    ],
+)
+def test__suit__image(suit: deck.Suit, image: str):
+    """
+    Test the ``Suit.image`` attribute.
+    """
+    assert suit.image == image
+
+
+@pytest.mark.parametrize(
+    "suit, colour",
+    [
+        (deck.Suit.CLUB, "black"),
+        (deck.Suit.SPADE, "black"),
+        (deck.Suit.HEART, "red"),
+        (deck.Suit.DIAMOND, "red"),
+    ],
+)
+def test__suit__colour(suit: deck.Suit, colour: deck.Colour):
+    """
+    Test the ``Suit.colour`` attribute.
+    """
+    assert suit.colour == colour
+
+
+###
+# Rank tests
+###
+@pytest.mark.parametrize(
+    "rank_value",
+    range(1, 14),
+)
+def test__rank(rank_value: int):
+    """
+    Test the construction of the ``Rank`` class.
+    """
+    rank = deck.Rank(rank_value)
+    assert rank.value == rank_value
+    assert str(rank) == str(rank_value)
+    assert repr(rank) == f"<Rank.{rank.name}: {rank.value}>"
+
+
+@pytest.mark.parametrize(
+    "id_, rank",
+    [
+        ("A", deck.Rank.ACE),
+        ("2", deck.Rank.TWO),
+        ("6", deck.Rank.SIX),
+        ("T", deck.Rank.TEN),
+        ("J", deck.Rank.JACK),
+        ("Q", deck.Rank.QUEEN),
+        ("K", deck.Rank.KING),
+    ],
+)
+def test__rank__from_id(id_: str, rank: deck.Rank):
+    assert deck.Rank.from_id(id_) == rank
+
+
+@pytest.mark.parametrize(
+    "rank, char",
+    [
+        (deck.Rank.ACE, "A"),
+        (deck.Rank.TWO, "2"),
+        (deck.Rank.THREE, "3"),
+        (deck.Rank.FOUR, "4"),
+        (deck.Rank.FIVE, "5"),
+        (deck.Rank.SIX, "6"),
+        (deck.Rank.SEVEN, "7"),
+        (deck.Rank.EIGHT, "8"),
+        (deck.Rank.NINE, "9"),
+        (deck.Rank.TEN, "T"),
+        (deck.Rank.JACK, "J"),
+        (deck.Rank.QUEEN, "Q"),
+        (deck.Rank.KING, "K"),
+    ],
+)
+def test__rank__char(rank: deck.Rank, char: str):
+    """
+    Test the ``Rank.char`` attribute.
+    """
+    assert rank.id == char
+
+
+###
+# Card tests
+###
+def test__card():
+    """
+    Test the construction of the ``Card`` class.
+    """
+    for rank, suit in itertools.product(deck.Rank, deck.Suit):
+        card = deck.Card(rank, suit)
+        assert card.rank == rank
+        assert card.suit == suit
+        assert str(card) == rank.id + suit.id
+        assert repr(card) == f"Card({rank=}, {suit=})"
+
+
+def test__card__from_str():
+    """
+    Test the ``Card.from_str()`` method.
+    """
+    for rank, suit in itertools.product(deck.Rank, deck.Suit):
+        card = deck.Card.from_str(rank.id + suit.id)
+        assert card.rank == rank
+        assert card.suit == suit
+
+
+@pytest.mark.parametrize(
+    "text, error",
+    [
+        ("A", KeyError),
+        ("ABC", KeyError),
+        ("S1", KeyError),
+        ("B2", KeyError),
+    ],
+)
+def test__card__from_str__raises(text: str, error: type[Exception]):
+    """
+    Test that the ``Card.from_str()`` method throws exceptions.
+    """
+    with pytest.raises(error):
+        deck.Card.from_str(text)
+
+
+@pytest.mark.parametrize(
+    "rank, value",
+    [
+        (deck.Rank.ACE, 1),
+        (deck.Rank.TWO, 2),
+        (deck.Rank.THREE, 3),
+        (deck.Rank.FOUR, 4),
+        (deck.Rank.FIVE, 5),
+        (deck.Rank.SIX, 6),
+        (deck.Rank.SEVEN, 7),
+        (deck.Rank.EIGHT, 8),
+        (deck.Rank.NINE, 9),
+        (deck.Rank.TEN, 10),
+        (deck.Rank.JACK, 10),
+        (deck.Rank.QUEEN, 10),
+        (deck.Rank.KING, 10),
+    ],
+)
+def test__value(rank: deck.Rank, value: int):
+    for suit in deck.Suit:
+        card = deck.Card(rank, suit)  # type: ignore
+        assert card.value == value
+
+
+@pytest.mark.parametrize(
+    "card, face",
+    [
+        (deck.Card(deck.Rank.ACE, deck.Suit.CLUB), "A♣"),
+        (deck.Card(deck.Rank.TWO, deck.Suit.SPADE), "2♠"),
+        (deck.Card(deck.Rank.TEN, deck.Suit.HEART), "T♥"),
+        (deck.Card(deck.Rank.KING, deck.Suit.DIAMOND), "K♦"),
+    ],
+)
+def test__face(card: deck.Card, face: str):
+    assert card.face == face
+
+
+@pytest.mark.parametrize(
+    "card, colour",
+    [
+        (deck.Card(deck.Rank.ACE, deck.Suit.CLUB), "black"),
+        (deck.Card(deck.Rank.TWO, deck.Suit.SPADE), "black"),
+        (deck.Card(deck.Rank.TEN, deck.Suit.HEART), "red"),
+        (deck.Card(deck.Rank.KING, deck.Suit.DIAMOND), "red"),
+    ],
+)
+def test__colour(card: deck.Card, colour: deck.Colour):
+    assert card.colour == colour
+
+
+###
+# Deck tests
+###
+def test__deck():
+    """
+    Test the construction of the ``MultiDeck`` class.
+    """
+    deck_1 = deck.Deck()
+    deck_2 = deck.Deck(num_decks=2)
+
+    assert deck_1._num_decks == 1
+    assert deck_2._num_decks == 2
+    assert str(deck_1) == "Deck consisting of 52 cards"
+    assert str(deck_2) == "Deck consisting of 104 cards"
+    assert repr(deck_1) == f"MultiDeck(num_decks={deck_1._num_decks})"
+    assert repr(deck_2) == f"MultiDeck(num_decks={deck_2._num_decks})"
+    assert len(deck_1) == 52
+    assert len(deck_2) == 104
+    assert type(deck_1[0]) is deck.Card
+    assert type(deck_2[0]) is deck.Card
+
+
+def test__deck__take_card():
+    """
+    Test the ``MultiDeck.take_card()`` method.
+    """
+    deck_ = deck.Deck()
+    assert len(deck_) == 52
+    card = deck_.take_card(1)[0]
+    assert len(deck_) == 51
+    assert type(card) is deck.Card
+    assert card not in deck_
+
+
+@pytest.mark.parametrize(
+    "key, card",
+    [
+        ("AC", deck.Card(deck.Rank.ACE, deck.Suit.CLUB)),
+        ("2S", deck.Card(deck.Rank.TWO, deck.Suit.SPADE)),
+        ("TH", deck.Card(deck.Rank.TEN, deck.Suit.HEART)),
+        ("KD", deck.Card(deck.Rank.KING, deck.Suit.DIAMOND)),
+    ],
+)
+def test__deck__take_card_by_key(key: str, card: deck.Card):
+    """
+    Test the ``MultiDeck._take_card_by_key()`` method.
+    """
+    deck_ = deck.Deck()
+    taken_card = deck_._take_card_by_key(key)[0]
+    assert len(deck_) == 51
+    assert taken_card == card
+    assert taken_card not in deck_

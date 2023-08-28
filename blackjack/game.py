@@ -5,12 +5,12 @@ This script defines the classes
 The classes do...
 
 Dependencies
-    * `multideck` (personal script)
+    * `deck` (personal script)
     * `players` (personal script)
 """
 
 
-from blackjack.multideck import MultiDeck
+from blackjack.deck import Deck
 from blackjack.players import Dealer, Player
 
 
@@ -39,10 +39,10 @@ class GameControl:
         [self.add_player() for _ in range(num_players)]
         return self  # inplace=False
 
-    def add_deck(self, num_decks=6, init_empty=False) -> MultiDeck:
+    def add_deck(self, num_decks=6, init_empty=False) -> Deck:
         if self.deck is not None:
             raise ValueError("A deck already exists in this game")
-        new_deck = MultiDeck(num_decks=num_decks, init_empty=init_empty)
+        new_deck = Deck(num_decks=num_decks, init_empty=init_empty)
         self.deck = new_deck
         return new_deck
 
