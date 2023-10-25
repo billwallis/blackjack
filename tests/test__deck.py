@@ -243,7 +243,7 @@ def test__colour(card: deck.Card, colour: deck.Colour):
 ###
 def test__deck():
     """
-    Test the construction of the ``MultiDeck`` class.
+    Test the construction of the ``Deck`` class.
     """
     deck_1 = deck.Deck()
     deck_2 = deck.Deck(num_decks=2)
@@ -252,8 +252,8 @@ def test__deck():
     assert deck_2._num_decks == 2
     assert str(deck_1) == "Deck consisting of 52 cards"
     assert str(deck_2) == "Deck consisting of 104 cards"
-    assert repr(deck_1) == f"MultiDeck(num_decks={deck_1._num_decks})"
-    assert repr(deck_2) == f"MultiDeck(num_decks={deck_2._num_decks})"
+    assert repr(deck_1) == f"Deck(num_decks={deck_1._num_decks})"
+    assert repr(deck_2) == f"Deck(num_decks={deck_2._num_decks})"
     assert len(deck_1) == 52
     assert len(deck_2) == 104
     assert type(deck_1[0]) is deck.Card
@@ -262,7 +262,7 @@ def test__deck():
 
 def test__deck__take_card():
     """
-    Test the ``MultiDeck.take_card()`` method.
+    Test the ``Deck.take_card()`` method.
     """
     deck_ = deck.Deck()
     assert len(deck_) == 52
@@ -283,7 +283,7 @@ def test__deck__take_card():
 )
 def test__deck__take_card_by_key(key: str, card: deck.Card):
     """
-    Test the ``MultiDeck._take_card_by_key()`` method.
+    Test the ``Deck._take_card_by_key()`` method.
     """
     deck_ = deck.Deck()
     taken_card = deck_._take_card_by_key(key)[0]

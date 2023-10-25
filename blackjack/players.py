@@ -25,7 +25,7 @@ class Hand:
         The current game in play
     verbose: bool (consider removing)
         Print to the console. Inherited from `game`
-    deck: MultiDeck (consider removing)
+    deck: Deck (consider removing)
         The deck to take cards from. Inherited from `game`
     hand: list
         The collection of Cards that the House has

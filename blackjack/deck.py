@@ -1,11 +1,13 @@
 """
 Define the cards and decks.
 
-A ``MultiDeck`` is a collection of ``n`` ``Deck``s, and a ``Deck`` is a
-collection of 52 ``Card``s. The ``Card``s represent the playing cards
-from the French-suited, standard 52-card pack.
+A deck in the traditional sense is a collection of 52 playing cards from
+the French-suited, standard 52-card pack.
 
-There are currently no Joker cards in the Card class.
+A ``Deck`` in this module is ``n`` sets of decks (making it a slight
+misnomer), where each playing card is represented by a ``Card`` class.
+
+There are currently no Joker cards in the ``Card`` class.
 """
 from __future__ import annotations
 
@@ -197,7 +199,7 @@ class Deck:
 
     def __init__(self, num_decks: int = 1):
         """
-        Return a ``MultiDeck`` with ``num_decks`` decks in it.
+        Return a ``Deck`` with ``num_decks`` decks in it.
 
         :param num_decks: The number of 52-card decks to include.
         """
@@ -210,7 +212,7 @@ class Deck:
         return f"Deck consisting of {len(self)} card{s}"
 
     def __repr__(self):
-        return f"MultiDeck(num_decks={self._num_decks})"
+        return f"Deck(num_decks={self._num_decks})"
 
     def __len__(self):
         return len(self.cards)

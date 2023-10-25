@@ -3,7 +3,7 @@ from blackjack.game import GameControl
 
 def main() -> None:
     # pass
-    # deck = MultiDeck(1)
+    # deck = Deck(1)
     # print(deck)
     # [print(c) for c in deck.take_card(52)]
     # print(deck)
