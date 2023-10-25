@@ -1,6 +1,8 @@
-# Blackjack Documentation
+# Blackjack
 
-Most of the classes are self-documenting with docstrings. Please check the corresponding docstring first.
+Implementing Blackjack, also called 21.
+
+---
 
 # To Do List
 

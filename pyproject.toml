@@ -6,7 +6,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "blackjack"
 version = "0.0.0"
-description = "Implementing blackjack, also called 21."
+description = "Implementing Blackjack, also called 21."
 readme = "README.md"
 authors = ["Bilbottom"]
 repository = "https://github.com/Bilbottom/blackjack"
@@ -19,16 +19,14 @@ blackjack = "blackjack.__main__:main"
 [tool.poetry.dependencies]
 python = "^3.11"
 
-[tool.poetry.group.dev]
-optional = true
+[tool.poetry.group]
+dev.optional = false
+test.optional = false
 
 [tool.poetry.group.dev.dependencies]
 coverage-badge = "^1.1.0"
 pre-commit = "^3.3.3"
 pylint = "^2.17.5"
-
-[tool.poetry.group.test]
-optional = true
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"

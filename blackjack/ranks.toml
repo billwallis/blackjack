@@ -1,0 +1,67 @@
+# The _name and the _value will match the name and value properties of
+# the rank's corresponding enum
+
+[1]
+_name = "ACE"
+_value = 1
+id = "A"
+
+[2]
+_name = "TWO"
+_value = 2
+id = "2"
+
+[3]
+_name = "THREE"
+_value = 3
+id = "3"
+
+[4]
+_name = "FOUR"
+_value = 4
+id = "4"
+
+[5]
+_name = "FIVE"
+_value = 5
+id = "5"
+
+[6]
+_name = "SIX"
+_value = 6
+id = "6"
+
+[7]
+_name = "SEVEN"
+_value = 7
+id = "7"
+
+[8]
+_name = "EIGHT"
+_value = 8
+id = "8"
+
+[9]
+_name = "NINE"
+_value = 9
+id = "9"
+
+[10]
+_name = "TEN"
+_value = 10
+id = "T"
+
+[11]
+_name = "JACK"
+_value = 11
+id = "J"
+
+[12]
+_name = "QUEEN"
+_value = 12
+id = "Q"
+
+[13]
+_name = "KING"
+_value = 13
+id = "K"
