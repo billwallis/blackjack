@@ -1,4 +1,4 @@
-from blackjack.game import GameControl
+from blackjack.game import Game
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
     # game = GameControl().standard_setup()
     # [print(p) for p in game.players]
 
-    game = GameControl(num_players=1)
+    game = Game(num_players=1)
     game.play_round()
 
 

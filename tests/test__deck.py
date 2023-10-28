@@ -161,6 +161,31 @@ def test__card():
         assert repr(card) == f"Card({rank=}, {suit=})"
 
 
+@pytest.mark.parametrize(
+    "card, other, result",
+    [
+        (deck.Card.from_str("2S"), deck.Card.from_str("TC"), 12),
+        (deck.Card.from_str("TC"), deck.Card.from_str("TC"), 20),
+        (deck.Card.from_str("2S"), 10, 12),
+        (deck.Card.from_str("TC"), 10, 20),
+    ],
+)
+def test__card__add(card: deck.Card, other: int | deck.Card, result: int):
+    """
+    Test the ``Card.__add__()`` method.
+    """
+    assert card + other == result
+    assert other + card == result
+
+
+def test__card__add__raises():
+    """
+    Test that ``Card.__add__()`` raises a ``TypeError``.
+    """
+    with pytest.raises(TypeError):
+        deck.Card.from_str("2S") + "2"  # type: ignore
+
+
 def test__card__from_str():
     """
     Test the ``Card.from_str()`` method.
@@ -266,7 +291,7 @@ def test__deck__take_card():
     """
     deck_ = deck.Deck()
     assert len(deck_) == 52
-    card = deck_.take_card(1)[0]
+    card = deck_.take_card()
     assert len(deck_) == 51
     assert type(card) is deck.Card
     assert card not in deck_
@@ -286,7 +311,29 @@ def test__deck__take_card_by_key(key: str, card: deck.Card):
     Test the ``Deck._take_card_by_key()`` method.
     """
     deck_ = deck.Deck()
-    taken_card = deck_._take_card_by_key(key)[0]
+    taken_card = deck_._take_card_by_key(key)
     assert len(deck_) == 51
     assert taken_card == card
     assert taken_card not in deck_
+
+
+@pytest.mark.parametrize(
+    "key, card",
+    [
+        ("AC", deck.Card(deck.Rank.ACE, deck.Suit.CLUB)),
+        ("2S", deck.Card(deck.Rank.TWO, deck.Suit.SPADE)),
+        ("TH", deck.Card(deck.Rank.TEN, deck.Suit.HEART)),
+        ("KD", deck.Card(deck.Rank.KING, deck.Suit.DIAMOND)),
+    ],
+)
+def test__deck__take_card_by_key__multiple_decks(key: str, card: deck.Card):
+    """
+    Test the ``Deck._take_card_by_key()`` method on multiple decks.
+    """
+    deck_ = deck.Deck(num_decks=3)
+    taken_card_1 = deck_._take_card_by_key(key)
+    taken_card_2 = deck_._take_card_by_key(key)
+    taken_card_3 = deck_._take_card_by_key(key)
+    assert len(deck_) == (52 * 3) - 3
+    assert taken_card_1 == taken_card_2 == taken_card_3 == card
+    assert taken_card_1 not in deck_
