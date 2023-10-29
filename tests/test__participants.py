@@ -1,5 +1,5 @@
 """
-Test the ``blackjack/participants`` module.
+Test the ``blackjack.participants`` module.
 """
 import textwrap
 
@@ -19,7 +19,10 @@ def mock_game() -> blackjack.Game:
     """
     Create a mock ``Game`` instance.
     """
-    return blackjack.Game()
+    game_ = blackjack.Game()
+    game_.standard_setup(num_players=6, num_decks=6)
+
+    return game_
 
 
 @pytest.fixture(scope="function")
@@ -261,7 +264,7 @@ def test__hand__show_cards(
     mock_hand.deal(["TC", "AC"])
     mock_hand.show_cards()
     captured = capsys.readouterr()
-    assert captured.out == "Mock Player's hand:\t[TC AC] [11, 21]\n"
+    assert captured.out == "Mock Player's hand:    [TC AC] [11, 21]\n"
 
 
 ###
@@ -310,6 +313,7 @@ _opt = participants.PlayerOption  # For brevity
         (["TC", "AC"], [_opt.TAKE_INSURANCE, _opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
         (["TC", "TD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN, _opt.SPLIT]),
         (["AC", "AD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN, _opt.SPLIT]),
+        (["JC", "KD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
         (["2C", "3D"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
         (["TC", "AC", "AD"], [_opt.STAND, _opt.HIT]),
         (["TC", "TD", "2C"], []),
@@ -334,7 +338,7 @@ def test__player_hand__options(
 # fmt: on
 
 
-@pytest.mark.skip("Not implemented yet")
+@pytest.mark.skip("Not implemented")
 def test__player_hand__play_hand(mock_game: blackjack.Game):
     """
     Test the ``PlayerHand.play_hand()`` method.
@@ -600,7 +604,8 @@ def test__player__clear_hands(mock_player: blackjack.Player):
 
 
 def test__player__add_money(
-    mock_player: blackjack.Player, capsys: pytest.CaptureFixture
+    mock_player: blackjack.Player,
+    capsys: pytest.CaptureFixture,
 ):
     """
     Test the ``Player.add_money()`` method.
@@ -614,7 +619,8 @@ def test__player__add_money(
 
 
 def test__player__print_money(
-    mock_player: blackjack.Player, capsys: pytest.CaptureFixture
+    mock_player: blackjack.Player,
+    capsys: pytest.CaptureFixture,
 ):
     """
     Test the ``Player.print_money()`` method.
@@ -625,9 +631,7 @@ def test__player__print_money(
     assert captured.out.strip() == "Mock Player has 500 money"
 
 
-def test__player__print_name_and_money(
-    mock_player: blackjack.Player, capsys: pytest.CaptureFixture
-):
+def test__player__name_and_money(mock_player: blackjack.Player):
     """
     Test the ``Player.print_name_and_money()`` method.
     """
@@ -639,10 +643,10 @@ def test__player__print_name_and_money(
         blackjack.Card.from_str("TD"),
     ]
     assert len(mock_player.hands) == 1
-    assert mock_player.print_name_and_money() == textwrap.dedent(
+    assert mock_player.name_and_money == textwrap.dedent(
         """\
         Mock Player has £500 with hand:
-        \t [TC TD] [20]  stake: £10
+            [TC TD] [20]  stake: £10
         """
     )
 
@@ -652,10 +656,10 @@ def test__player__print_name_and_money(
         blackjack.Card.from_str("AD"),
     ]
     assert len(mock_player.hands) == 2
-    assert mock_player.print_name_and_money() == textwrap.dedent(
+    assert mock_player.name_and_money == textwrap.dedent(
         """\
         Mock Player has £500 with hands:
-        \t [TC TD] [20]  stake: £10
-        \t [AC AD] [2, 12]  stake: £10
+            [TC TD] [20]  stake: £10
+            [AC AD] [2, 12]  stake: £10
         """
     )
