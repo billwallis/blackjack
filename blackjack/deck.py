@@ -1,11 +1,13 @@
 """
 Define the cards and decks.
 
-A ``MultiDeck`` is a collection of ``n`` ``Deck``s, and a ``Deck`` is a
-collection of 52 ``Card``s. The ``Card``s represent the playing cards
-from the French-suited, standard 52-card pack.
+A deck in the traditional sense is a collection of 52 playing cards from
+the French-suited, standard 52-card pack.
 
-There are currently no Joker cards in the Card class.
+A ``Deck`` in this module is ``n`` sets of decks (making it a slight
+misnomer), where a ``Card`` class represents each playing card.
+
+There are currently no Joker cards in the ``Card`` class.
 """
 from __future__ import annotations
 
@@ -30,6 +32,9 @@ _RANKS: dict[str, dict[str, str]] = tomllib.loads(
 class Suit(enum.StrEnum):
     """
     A suit for a playing card.
+
+    TODO: Add a total ordering with the following order (worst < best):
+        CLUB < DIAMOND < HEART < SPADE
     """
 
     CLUB = enum.auto()
@@ -85,6 +90,8 @@ class Suit(enum.StrEnum):
 class Rank(enum.IntEnum):
     """
     A rank for a playing card.
+
+    TODO: Add a total ordering on the rank values. How does Ace work?
     """
 
     ACE = enum.auto()
@@ -146,6 +153,20 @@ class Card:
     def __str__(self):
         return self.rank.id + self.suit.id
 
+    def __add__(self, other: int | Card) -> int:
+        """
+        Return the sum of the two cards.
+        """
+        if isinstance(other, int):
+            return self.value + other
+        elif isinstance(other, Card):
+            return self.value + other.value
+        else:
+            return NotImplemented
+
+    def __radd__(self, other: int | Card) -> int:
+        return self + other
+
     @classmethod
     def from_str(cls, _key: str, /) -> Card:
         """
@@ -197,7 +218,7 @@ class Deck:
 
     def __init__(self, num_decks: int = 1):
         """
-        Return a ``MultiDeck`` with ``num_decks`` decks in it.
+        Return a ``Deck`` with ``num_decks`` decks in it.
 
         :param num_decks: The number of 52-card decks to include.
         """
@@ -206,11 +227,13 @@ class Deck:
         self.reset()
 
     def __str__(self):
-        s = "" if len(self) == 1 else "s"
+        s = (
+            "" if len(self) == 1 else "s"
+        )  # sourcery skip: avoid-single-character-names-variables
         return f"Deck consisting of {len(self)} card{s}"
 
     def __repr__(self):
-        return f"MultiDeck(num_decks={self._num_decks})"
+        return f"Deck(num_decks={self._num_decks})"
 
     def __len__(self):
         return len(self.cards)
@@ -235,24 +258,21 @@ class Deck:
         """
         random.shuffle(self.cards)
 
-    def take_card(self, amount: int) -> list[Card]:
+    def take_card(self, _key: str = None) -> Card:
         """
-        Pop the top ``amount`` cards from the deck and return them as a list.
+        Return the top card from the deck.
 
-        :param amount: The number of cards to take.
+        :param _key: The key of the card to take.
 
         :return: A list of the taken cards.
         """
-        return [self.cards.pop() for _ in range(amount)]
+        return self._take_card_by_key(_key) if _key else self.cards.pop()
 
-    def _take_card_by_key(self, key: str) -> list[Card]:
+    def _take_card_by_key(self, key: str) -> Card:
         """
         Pop the card from the deck whose key corresponds to ``key``.
 
         This is just for debugging and testing.
-
-        TODO: Move this to the ``take_card`` method, and make a new
-              ``take_cards`` method that calls ``take_card``.
 
         :param key: The key of the card to take.
 
@@ -260,6 +280,6 @@ class Deck:
 
         :return: A list of cards corresponding to the key.
         """
-        return [
-            self.cards.pop(i) for i, card in enumerate(self.cards) if str(card) == key
-        ]
+        for i, card in enumerate(self.cards):
+            if str(card) == key:
+                return self.cards.pop(i)

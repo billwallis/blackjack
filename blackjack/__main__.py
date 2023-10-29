@@ -1,9 +1,9 @@
-from blackjack.game import GameControl
+from blackjack.game import Game
 
 
 def main() -> None:
     # pass
-    # deck = MultiDeck(1)
+    # deck = Deck(1)
     # print(deck)
     # [print(c) for c in deck.take_card(52)]
     # print(deck)
@@ -11,7 +11,7 @@ def main() -> None:
     # game = GameControl().standard_setup()
     # [print(p) for p in game.players]
 
-    game = GameControl(num_players=1)
+    game = Game(num_players=1)
     game.play_round()
 
 
