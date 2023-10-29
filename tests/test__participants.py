@@ -79,12 +79,12 @@ def test__hand__str(mock_hand: participants.Hand):
     """
     Test the string representation of the ``Hand`` class.
     """
-    assert str(mock_hand) == "[] [0]"
+    assert str(mock_hand) == "[] {0}"
     mock_hand.cards = [
         blackjack.Card.from_str("2S"),
         blackjack.Card.from_str("TC"),
     ]
-    assert str(mock_hand) == "[2S TC] [12]"
+    assert str(mock_hand) == "[2S TC] {12}"
 
 
 def test__hand__repr(mock_hand: participants.Hand):
@@ -119,17 +119,19 @@ def test__hand__getitem(mock_hand: participants.Hand):
 
 
 @pytest.mark.parametrize(
-    "cards, values",
+    "cards, values, eligible_values",
     [
-        ([], [0]),
-        (["2S", "TC"], [12]),
-        (["TC", "AC"], [11, 21]),
+        ([], {0}, {0}),
+        (["2S", "TC"], {12}, {12}),
+        (["TC", "AC"], {11, 21}, {11, 21}),
+        (["TC", "TD", "2C"], {22}, set()),
     ],
 )
 def test__hand__values(
     mock_hand: participants.Hand,
     cards: list[str],
-    values: list[int],
+    values: set[int],
+    eligible_values: set[int],
 ):
     """
     Test the ``Hand.values``.
@@ -264,7 +266,7 @@ def test__hand__show_cards(
     mock_hand.deal(["TC", "AC"])
     mock_hand.show_cards()
     captured = capsys.readouterr()
-    assert captured.out == "Mock Player's hand:    [TC AC] [11, 21]\n"
+    assert captured.out == "Mock Player's hand:    [TC AC] {11, 21}\n"
 
 
 ###
@@ -646,7 +648,7 @@ def test__player__name_and_money(mock_player: blackjack.Player):
     assert mock_player.name_and_money == textwrap.dedent(
         """\
         Mock Player has £500 with hand:
-            [TC TD] [20]  stake: £10
+            [TC TD] {20}  stake: £10
         """
     )
 
@@ -659,7 +661,7 @@ def test__player__name_and_money(mock_player: blackjack.Player):
     assert mock_player.name_and_money == textwrap.dedent(
         """\
         Mock Player has £500 with hands:
-            [TC TD] [20]  stake: £10
-            [AC AD] [2, 12]  stake: £10
+            [TC TD] {20}  stake: £10
+            [AC AD] {2, 12}  stake: £10
         """
     )
