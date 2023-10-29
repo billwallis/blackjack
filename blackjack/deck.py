@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
+import functools
 import itertools
 import pathlib
 import random
@@ -29,12 +30,10 @@ _RANKS: dict[str, dict[str, str]] = tomllib.loads(
 )
 
 
+@functools.total_ordering
 class Suit(enum.StrEnum):
     """
     A suit for a playing card.
-
-    TODO: Add a total ordering with the following order (worst < best):
-        CLUB < DIAMOND < HEART < SPADE
     """
 
     CLUB = enum.auto()
@@ -42,9 +41,18 @@ class Suit(enum.StrEnum):
     HEART = enum.auto()
     DIAMOND = enum.auto()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: signature required for __new__
         assert self._get("_name")
         assert self._get("_value")
+
+    def __lt__(self, other: Suit) -> bool:
+        order = {
+            Suit.CLUB: 0,
+            Suit.DIAMOND: 1,
+            Suit.HEART: 2,
+            Suit.SPADE: 3,
+        }
+        return order[self] < order[other]
 
     def _get(self, _key: Any, /) -> Any:
         """
@@ -90,8 +98,6 @@ class Suit(enum.StrEnum):
 class Rank(enum.IntEnum):
     """
     A rank for a playing card.
-
-    TODO: Add a total ordering on the rank values. How does Ace work?
     """
 
     ACE = enum.auto()
@@ -108,7 +114,7 @@ class Rank(enum.IntEnum):
     QUEEN = enum.auto()
     KING = enum.auto()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: signature required for __new__
         assert self._get("_name")
         assert self._get("_value")
 

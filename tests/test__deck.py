@@ -33,6 +33,25 @@ def test__suit(suit_name: str):
 
 
 @pytest.mark.parametrize(
+    "suit_1, suit_2, expected",
+    [
+        (deck.Suit.CLUB, deck.Suit.CLUB, False),
+        (deck.Suit.CLUB, deck.Suit.SPADE, True),
+        (deck.Suit.CLUB, deck.Suit.HEART, True),
+        (deck.Suit.CLUB, deck.Suit.DIAMOND, True),
+        (deck.Suit.SPADE, deck.Suit.CLUB, False),
+        (deck.Suit.HEART, deck.Suit.CLUB, False),
+        (deck.Suit.DIAMOND, deck.Suit.CLUB, False),
+    ],
+)
+def test__suit__lt(suit_1: deck.Suit, suit_2: deck.Suit, expected: bool):
+    """
+    Test the ``Suit.__lt__()`` method.
+    """
+    assert (suit_1 < suit_2) is expected
+
+
+@pytest.mark.parametrize(
     "id_, suit",
     [
         ("C", deck.Suit.CLUB),
