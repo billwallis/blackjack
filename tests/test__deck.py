@@ -1,5 +1,5 @@
 """
-Test the ``blackjack/deck`` module.
+Test the ``blackjack.deck`` module.
 """
 import itertools
 

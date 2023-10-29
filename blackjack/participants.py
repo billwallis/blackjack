@@ -21,6 +21,7 @@ class Hand(abc.ABC):
     game: blackjack.Game
     participant: Participant
     cards: list[blackjack.Card]
+    playing: bool = True
 
     def __init__(self, game: blackjack.Game, participant: Participant):
         """
@@ -100,12 +101,15 @@ class Hand(abc.ABC):
         """
         Print the cards in the hand to the terminal in a human-readable way.
         """
-        print(f"{self.participant.name}'s hand:\t{self}")
+        print(f"{self.participant.name}'s hand:    {self}")
 
     @abc.abstractmethod
     def evaluate(self) -> None:
         """
         Evaluate the hand and update the outcome.
+
+        TODO: Rename this to ``play_hand()`` and split the play from the
+              evaluation.
         """
 
 
@@ -117,6 +121,13 @@ class DealerHand(Hand):
     participant: Dealer
 
     def __str__(self):
+        return self.masked_cards if self.playing else super().__str__()
+
+    @property
+    def masked_cards(self) -> str:
+        """
+        Return the cards in the hand, with the first masked.
+        """
         return f"[{self.cards[0]} ??] [{self.cards[0].value}]\n"
 
     def evaluate(self) -> None:
@@ -126,12 +137,9 @@ class DealerHand(Hand):
         The dealer must hit on 16 or less and stand on 17 or more.
         """
         assert len(self) == 2, "Dealer must have two cards to play"
-        while True:
-            if self.game.verbose:
-                self.show_cards()
-            if max(self.values) >= 17:
-                break
+        while max(self.values) < 17:
             self.hit()
+        self.playing = False
 
 
 class PlayerHand(Hand):
@@ -143,7 +151,6 @@ class PlayerHand(Hand):
     bet: int
     outcome: PlayerOutcome
     from_split: bool
-    playing: bool
 
     def __init__(self, player: Player, bet: int):
         # I think this violates the Liskov substitution principle
@@ -151,7 +158,6 @@ class PlayerHand(Hand):
 
         self.bet = bet
         self.from_split = False
-        self.playing = True
 
     @property
     def options(self) -> list[PlayerOption]:
@@ -173,7 +179,7 @@ class PlayerHand(Hand):
             else:
                 return []
         elif len(self) == 2 and self.participant.money > self.bet:
-            if self[0].value == self[1].value:
+            if self[0].rank == self[1].rank:
                 return [
                     PlayerOption.STAND,
                     PlayerOption.HIT,
@@ -194,8 +200,9 @@ class PlayerHand(Hand):
         3. feedback
         """
         # Split from Ace's should never come down here
-        assert self[0].rank != 1
-        assert self[1].rank != 1
+        if self.from_split:
+            assert self[0].rank != 1
+            assert self[1].rank != 1
 
         while self.playing:
             print(f"Playing hand {str(self)}")
@@ -208,14 +215,12 @@ class PlayerHand(Hand):
             player_options = ", ".join(option.readable for option in options) + "?"
             decision = None
             while not decision:
-                decision_key = input(player_options)
+                decision_key = input(f"{player_options} ")
                 try:
                     decision = PlayerOption(decision_key)
                     decision.action(self)
                 except ValueError:
                     print(f"Key {decision_key} not recognised, try again.")
-
-        self.evaluate()
 
     def evaluate(self) -> None:
         """
@@ -244,6 +249,9 @@ class PlayerHand(Hand):
             self.outcome = PlayerOutcome.WIN
         else:
             raise ValueError(f"Unexpected state: {hand_value=}, {dealer_value=}")
+
+        self.show_cards()
+        print(f"Outcome: {self.outcome.value}")
 
     def split(self) -> None:
         """
@@ -408,9 +416,8 @@ class Player(Participant):
         Add money to the player's total.
         """
         self.money += amount
-        if self.game.verbose:
-            outcome = ["won", "lost"][amount < 0]
-            print(f"{self.name} {outcome} {abs(amount)}")
+        outcome = ["won", "lost"][amount < 0]
+        print(f"{self.name} {outcome} {abs(amount)}")
 
     def print_money(self) -> None:
         """
@@ -418,13 +425,14 @@ class Player(Participant):
         """
         print(f"{self.name} has {str(self.money)} money")
 
-    def print_name_and_money(self) -> str:
+    @property
+    def name_and_money(self) -> str:
         """
-        Print the player's name and money.
+        Return the player's name and money.
         """
         s = "s" if len(self) != 1 else ""
         description = f"{self.name} has £{self.money} with hand{s}:"
         for hand in self.hands:
-            description += f"\n\t {hand}  stake: £{hand.bet}"
+            description += f"\n    {hand}  stake: £{hand.bet}"
 
         return description + "\n"

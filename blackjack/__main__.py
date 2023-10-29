@@ -1,17 +1,15 @@
-from blackjack.game import Game
+"""
+Start a game of Blackjack.
+"""
+import blackjack
 
 
 def main() -> None:
-    # pass
-    # deck = Deck(1)
-    # print(deck)
-    # [print(c) for c in deck.take_card(52)]
-    # print(deck)
-
-    # game = GameControl().standard_setup()
-    # [print(p) for p in game.players]
-
-    game = Game(num_players=1)
+    """
+    Start a game of Blackjack.
+    """
+    game = blackjack.Game()
+    game.standard_setup(num_players=1, num_decks=6)
     game.play_round()
 
 
