@@ -1,34 +1,30 @@
-# Blackjack
+<div align="center">
 
-Implementing Blackjack, also called 21.
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
+[![application-tests](https://github.com/Bilbottom/blackjack/actions/workflows/application-tests.yaml/badge.svg)](https://github.com/Bilbottom/blackjack/actions/workflows/application-tests.yaml)
+[![coverage](coverage.svg)](https://github.com/dbrgn/coverage-badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/Bilbottom/blackjack)
+
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+[![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Bilbottom/blackjack/main.svg)](https://results.pre-commit.ci/latest/github/Bilbottom/blackjack/main)
+[![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
+
+</div>
 
 ---
 
-# To Do List
+# Blackjack ♠️♥️♣️♦️
 
-## Base Game
+Implementing Blackjack, also called 21.
 
-- Implement cards 'burns' to keep some info hidden from the players
-- Find out whether dealer blackjack beats player blackjack
-- Find out whether a dealer blackjack beats a player 21
-- Find out whether a player blackjack beats a dealer 21
-- Include insurance for when dealer starts with A
-- Add side bets!
+## Quick Start
 
-## Nice UX
+```bash
+poetry install --sync
+pre-commit install --install-hooks
 
-- Implement the game in pygame (partially for fun, partially to confirm that everything works correctly)
-
-## Automated Strategy
-
-- Simulate n plays (in x games?) using the strategy matrices
-- Research common top strategies to give multiple matrices
-- For each matrix, compute an expected return to player
-
-## Card Counting
-
-- Implement card counting per game to determine strategy
-
-## Cards In Play
-
-- Use all cards in play to determine strategy
+blackjack
+```
