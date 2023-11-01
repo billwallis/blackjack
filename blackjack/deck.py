@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
+import functools
 import itertools
 import pathlib
 import random
@@ -29,12 +30,10 @@ _RANKS: dict[str, dict[str, str]] = tomllib.loads(
 )
 
 
+@functools.total_ordering
 class Suit(enum.StrEnum):
     """
     A suit for a playing card.
-
-    TODO: Add a total ordering with the following order (worst < best):
-        CLUB < DIAMOND < HEART < SPADE
     """
 
     CLUB = enum.auto()
@@ -42,9 +41,18 @@ class Suit(enum.StrEnum):
     HEART = enum.auto()
     DIAMOND = enum.auto()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: signature required for __new__
         assert self._get("_name")
         assert self._get("_value")
+
+    def __lt__(self, other: Suit) -> bool:
+        order = {
+            Suit.CLUB: 0,
+            Suit.DIAMOND: 1,
+            Suit.HEART: 2,
+            Suit.SPADE: 3,
+        }
+        return order[self] < order[other]
 
     def _get(self, _key: Any, /) -> Any:
         """
@@ -90,8 +98,6 @@ class Suit(enum.StrEnum):
 class Rank(enum.IntEnum):
     """
     A rank for a playing card.
-
-    TODO: Add a total ordering on the rank values. How does Ace work?
     """
 
     ACE = enum.auto()
@@ -108,7 +114,7 @@ class Rank(enum.IntEnum):
     QUEEN = enum.auto()
     KING = enum.auto()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: signature required for __new__
         assert self._get("_name")
         assert self._get("_value")
 
@@ -137,6 +143,62 @@ class Rank(enum.IntEnum):
         return self._get("id")
 
 
+@functools.total_ordering
+class Values:
+    """
+    Values for a playing card.
+    """
+
+    _values: set[int]
+
+    def __init__(self, values: set[int]):
+        self._values = values
+
+    @classmethod
+    def from_rank(cls, rank: Rank) -> Values:
+        """
+        Return a ``Value`` from a ``Rank``.
+        """
+        return cls({1, 11} if rank == Rank.ACE else {min(rank.value, 10)})
+
+    def __str__(self):
+        return str(self._values)
+
+    def __repr__(self):
+        return f"Value(value={self._values})"
+
+    def __eq__(self, other: set[int] | Values) -> bool:
+        if isinstance(other, Values):
+            return self._values == other._values
+        elif isinstance(other, set):
+            return self._values == other
+        else:
+            return NotImplemented
+
+    def __lt__(self, other: Values) -> bool:
+        return max(self._values) < max(other._values)
+
+    def __iter__(self):
+        yield from self._values
+
+    def __add__(self, other: int | Values) -> Values:
+        other_: set[int] = {other} if isinstance(other, int) else other._values
+        if isinstance(other, (int, Values)):
+            return Values({sum(p) for p in itertools.product(self._values, other_)})
+        else:
+            return NotImplemented
+
+    def __radd__(self, other: int | Values) -> Values:
+        return self + other
+
+    @property
+    def eligible_values(self) -> Values:
+        """
+        The eligible values for winning.
+        """
+        return Values({value for value in self._values if value <= 21})
+
+
 @dataclasses.dataclass
 class Card:
     """
@@ -145,26 +207,28 @@ class Card:
 
     rank: Rank
     suit: Suit
+    values: Values = dataclasses.field(repr=False)
 
     def __init__(self, rank: Rank, suit: Suit):
         self.rank = rank
         self.suit = suit
+        self.values = Values.from_rank(rank)
 
     def __str__(self):
         return self.rank.id + self.suit.id
 
-    def __add__(self, other: int | Card) -> int:
+    def __add__(self, other: int | Card) -> Values:
         """
         Return the sum of the two cards.
         """
         if isinstance(other, int):
-            return self.value + other
+            return self.values + other
         elif isinstance(other, Card):
-            return self.value + other.value
+            return self.values + other.values
         else:
             return NotImplemented
 
-    def __radd__(self, other: int | Card) -> int:
+    def __radd__(self, other: int | Card) -> Values:
         return self + other
 
     @classmethod
@@ -175,15 +239,6 @@ class Card:
         if len(_key) != 2:
             raise KeyError(f"The key, {_key}, should be 2 characters")
         return cls(Rank.from_id(_key[0]), Suit.from_id(_key[1]))
-
-    @property
-    def value(self) -> int:
-        """
-        The value of the card.
-
-        TODO: Consider turning this into "values" since ace can be 1 and 10.
-        """
-        return min(self.rank.value, 10)
 
     @property
     def face(self) -> str:

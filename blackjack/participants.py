@@ -44,7 +44,7 @@ class Hand(abc.ABC):
 
     def __str__(self) -> str:
         faces = " ".join(str(card) for card in self.cards)
-        return f"[{faces}] {self.values}"
+        return f"[{faces}] {self.values.eligible_values}"
 
     def __repr__(self) -> str:
         return f"Hand(player='{self.participant}')"
@@ -56,22 +56,21 @@ class Hand(abc.ABC):
         return self.cards[position]
 
     @property
-    def values(self) -> list[int]:
+    def values(self) -> blackjack.Values:
         """
-        The list-value of the hand accounting for aces.
+        The set-value of the hand accounting for Aces.
         """
-        total_value = sum(self.cards)
-        if 1 in [card.rank for card in self.cards] and total_value < 12:
-            return [total_value, total_value + 10]
+        if self.cards:
+            return sum(card.values for card in self.cards)  # type: ignore
         else:
-            return [total_value]
+            return blackjack.Values({0})
 
     @property
     def blackjack(self) -> bool:
         """
         Whether the hand is a blackjack (21 with two cards).
         """
-        return len(self) == 2 and max(self.values) == 21
+        return len(self) == 2 and max(self.values.eligible_values) == 21
 
     @property
     def bust(self) -> bool:
@@ -128,7 +127,7 @@ class DealerHand(Hand):
         """
         Return the cards in the hand, with the first masked.
         """
-        return f"[{self.cards[0]} ??] [{self.cards[0].value}]\n"
+        return f"[{self.cards[0]} ??] [{self.cards[0].values}]\n"
 
     def evaluate(self) -> None:
         """
@@ -227,7 +226,7 @@ class PlayerHand(Hand):
         Evaluate the hand and update the outcome.
         """
         dealer = self.participant.game.dealer
-        hand_value = max(self.values)
+        hand_value = max(self.values if self.bust else self.values.eligible_values)
         dealer_value = max(dealer.hand.values)
 
         if self.bust:

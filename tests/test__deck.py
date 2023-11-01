@@ -33,6 +33,25 @@ def test__suit(suit_name: str):
 
 
 @pytest.mark.parametrize(
+    "suit_1, suit_2, expected",
+    [
+        (deck.Suit.CLUB, deck.Suit.CLUB, False),
+        (deck.Suit.CLUB, deck.Suit.SPADE, True),
+        (deck.Suit.CLUB, deck.Suit.HEART, True),
+        (deck.Suit.CLUB, deck.Suit.DIAMOND, True),
+        (deck.Suit.SPADE, deck.Suit.CLUB, False),
+        (deck.Suit.HEART, deck.Suit.CLUB, False),
+        (deck.Suit.DIAMOND, deck.Suit.CLUB, False),
+    ],
+)
+def test__suit__lt(suit_1: deck.Suit, suit_2: deck.Suit, expected: bool):
+    """
+    Test the ``Suit.__lt__()`` method.
+    """
+    assert (suit_1 < suit_2) is expected
+
+
+@pytest.mark.parametrize(
     "id_, suit",
     [
         ("C", deck.Suit.CLUB),
@@ -147,6 +166,106 @@ def test__rank__char(rank: deck.Rank, char: str):
 
 
 ###
+# Value tests
+###
+def test__values():
+    """
+    Test the construction of the ``Values`` class.
+    """
+    value = deck.Values({1, 11})
+    assert value._values == {1, 11}
+
+
+def test__values__str():
+    """
+    Test the ``Values.__str__()`` and ``Values.__repr__()`` methods.
+    """
+    value = deck.Values({1, 11})
+    assert str(value) == "{1, 11}"
+    assert repr(value) == f"Value(value={value._values})"
+
+
+@pytest.mark.parametrize(
+    "values_1, values_2, expected",
+    [
+        ({1}, {2}, True),
+        ({2}, {1}, False),
+        ({3}, {1, 5}, True),
+        ({2}, {1, 3}, True),
+        ({1, 2}, {2, 3}, True),
+        ({1, 3}, {2}, False),
+        ({1, 2, 3}, {4}, True),
+    ],
+)
+def test__values__lt(values_1: set[int], values_2: set[int], expected: bool):
+    """
+    Test the ``Values.__lt__()`` method.
+    """
+    value_1 = deck.Values(values_1)
+    value_2 = deck.Values(values_2)
+    assert (value_1 < value_2) is expected
+
+
+def test__values__eq():
+    """
+    Test the ``Values.__eq__()`` method.
+    """
+    value_1 = deck.Values({1})
+    value_2 = deck.Values({1})
+    assert value_1 == value_2
+
+
+def test__values__not_implemented():
+    """
+    Test that the ``Values.__eq__()`` method throws an exception.
+    """
+    assert (deck.Values({1}) == "one") is False
+
+
+@pytest.mark.parametrize(
+    "values_1, values_2, result",
+    [
+        ({1}, {2}, {3}),
+        ({2}, {1}, {3}),
+        ({3}, {1, 5}, {4, 8}),
+        ({2}, {1, 3}, {3, 5}),
+        ({1, 2}, {2, 3}, {3, 4, 5}),
+        ({1, 2, 3}, {4}, {5, 6, 7}),
+        ({10}, {1, 11}, {11, 21}),
+        ({1, 11}, {11, 21}, {12, 22, 32}),
+    ],
+)
+def test__values__add(
+    values_1: set[int],
+    values_2: set[int],
+    result: set[int],
+):
+    """
+    Test the ``Values.__add__()`` method.
+    """
+    value_1 = deck.Values(values_1)
+    value_2 = deck.Values(values_2)
+    assert value_1 + value_2 == result
+
+
+@pytest.mark.parametrize(
+    "values, eligible_values",
+    [
+        ({1}, {1}),
+        ({1, 11}, {1, 11}),
+        ({30}, set()),
+        ({1, 11, 30}, {1, 11}),
+        ({12, 22, 32}, {12}),
+    ],
+)
+def test__values__eligible_values(values: set[int], eligible_values: set[int]):
+    """
+    Test the ``Values.eligible_values`` property.
+    """
+    assert deck.Values(values).eligible_values == deck.Values(eligible_values)
+
+
+###
 # Card tests
 ###
 def test__card():
@@ -164,13 +283,13 @@ def test__card():
 @pytest.mark.parametrize(
     "card, other, result",
     [
-        (deck.Card.from_str("2S"), deck.Card.from_str("TC"), 12),
-        (deck.Card.from_str("TC"), deck.Card.from_str("TC"), 20),
-        (deck.Card.from_str("2S"), 10, 12),
-        (deck.Card.from_str("TC"), 10, 20),
+        (deck.Card.from_str("2S"), deck.Card.from_str("TC"), {12}),
+        (deck.Card.from_str("TC"), deck.Card.from_str("TC"), {20}),
+        (deck.Card.from_str("2S"), 10, {12}),
+        (deck.Card.from_str("TC"), 10, {20}),
     ],
 )
-def test__card__add(card: deck.Card, other: int | deck.Card, result: int):
+def test__card__add(card: deck.Card, other: int | deck.Card, result: set[int]):
     """
     Test the ``Card.__add__()`` method.
     """
@@ -214,27 +333,27 @@ def test__card__from_str__raises(text: str, error: type[Exception]):
 
 
 @pytest.mark.parametrize(
-    "rank, value",
+    "rank, values",
     [
-        (deck.Rank.ACE, 1),
-        (deck.Rank.TWO, 2),
-        (deck.Rank.THREE, 3),
-        (deck.Rank.FOUR, 4),
-        (deck.Rank.FIVE, 5),
-        (deck.Rank.SIX, 6),
-        (deck.Rank.SEVEN, 7),
-        (deck.Rank.EIGHT, 8),
-        (deck.Rank.NINE, 9),
-        (deck.Rank.TEN, 10),
-        (deck.Rank.JACK, 10),
-        (deck.Rank.QUEEN, 10),
-        (deck.Rank.KING, 10),
+        (deck.Rank.ACE, {1, 11}),
+        (deck.Rank.TWO, {2}),
+        (deck.Rank.THREE, {3}),
+        (deck.Rank.FOUR, {4}),
+        (deck.Rank.FIVE, {5}),
+        (deck.Rank.SIX, {6}),
+        (deck.Rank.SEVEN, {7}),
+        (deck.Rank.EIGHT, {8}),
+        (deck.Rank.NINE, {9}),
+        (deck.Rank.TEN, {10}),
+        (deck.Rank.JACK, {10}),
+        (deck.Rank.QUEEN, {10}),
+        (deck.Rank.KING, {10}),
     ],
 )
-def test__value(rank: deck.Rank, value: int):
+def test__card__values(rank: deck.Rank, values: set[int]):
     for suit in deck.Suit:
         card = deck.Card(rank, suit)  # type: ignore
-        assert card.value == value
+        assert card.values == values
 
 
 @pytest.mark.parametrize(
@@ -246,7 +365,7 @@ def test__value(rank: deck.Rank, value: int):
         (deck.Card(deck.Rank.KING, deck.Suit.DIAMOND), "K♦"),
     ],
 )
-def test__face(card: deck.Card, face: str):
+def test__card__face(card: deck.Card, face: str):
     assert card.face == face
 
 
