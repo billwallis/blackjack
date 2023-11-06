@@ -1,6 +1,7 @@
 """
 Test the ``blackjack.participants`` module.
 """
+
 import textwrap
 
 import pytest

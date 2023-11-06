@@ -1,6 +1,7 @@
 """
 Test the ``blackjack.deck`` module.
 """
+
 import itertools
 
 import pytest
