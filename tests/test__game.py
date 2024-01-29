@@ -1,6 +1,7 @@
 """
 Test the ``blackjack.game`` module.
 """
+
 import pytest
 
 from blackjack import deck, game, participants

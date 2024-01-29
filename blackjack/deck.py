@@ -9,6 +9,7 @@ misnomer), where a ``Card`` class represents each playing card.
 
 There are currently no Joker cards in the ``Card`` class.
 """
+
 from __future__ import annotations
 
 import dataclasses
