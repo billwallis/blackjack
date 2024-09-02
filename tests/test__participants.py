@@ -7,7 +7,7 @@ import textwrap
 import pytest
 
 import blackjack
-from blackjack import participants
+from blackjack import deck, participants
 
 
 class MockHand(participants.Hand):
@@ -82,8 +82,8 @@ def test__hand__str(mock_hand: participants.Hand):
     """
     assert str(mock_hand) == "[] {0}"
     mock_hand.cards = [
-        blackjack.Card.from_str("2S"),
-        blackjack.Card.from_str("TC"),
+        deck.Card.from_id("2S"),
+        deck.Card.from_id("TC"),
     ]
     assert str(mock_hand) == "[2S TC] {12}"
 
@@ -101,8 +101,8 @@ def test__hand__len(mock_hand: participants.Hand):
     """
     assert len(mock_hand) == 0
     mock_hand.cards = [
-        blackjack.Card.from_str("2S"),
-        blackjack.Card.from_str("TC"),
+        deck.Card.from_id("2S"),
+        deck.Card.from_id("TC"),
     ]
     assert len(mock_hand) == 2
 
@@ -112,11 +112,11 @@ def test__hand__getitem(mock_hand: participants.Hand):
     Test retrieving an item from the ``Hand`` class.
     """
     mock_hand.cards = [
-        blackjack.Card.from_str("2S"),
-        blackjack.Card.from_str("TC"),
+        deck.Card.from_id("2S"),
+        deck.Card.from_id("TC"),
     ]
-    assert mock_hand[0] == blackjack.Card.from_str("2S")
-    assert mock_hand[1] == blackjack.Card.from_str("TC")
+    assert mock_hand[0] == deck.Card.from_id("2S")
+    assert mock_hand[1] == deck.Card.from_id("TC")
 
 
 @pytest.mark.parametrize(
@@ -137,7 +137,7 @@ def test__hand__values(
     """
     Test the ``Hand.values``.
     """
-    mock_hand.cards = [blackjack.Card.from_str(card) for card in cards]
+    mock_hand.cards = [deck.Card.from_id(card) for card in cards]
     assert mock_hand.values == values
 
 
@@ -159,7 +159,7 @@ def test__hand__blackjack(
     """
     Test the ``Hand.blackjack`` property.
     """
-    mock_hand.cards = [blackjack.Card.from_str(card) for card in cards]
+    mock_hand.cards = [deck.Card.from_id(card) for card in cards]
     assert mock_hand.blackjack is expected
 
 
@@ -181,7 +181,7 @@ def test__hand__bust(
     """
     Test the ``Hand.bust`` property.
     """
-    mock_hand.cards = [blackjack.Card.from_str(card) for card in cards]
+    mock_hand.cards = [deck.Card.from_id(card) for card in cards]
     assert mock_hand.bust is expected
 
 
@@ -214,7 +214,7 @@ def test__hand__hit__by_key(mock_hand: participants.Hand, cards: list[str]):
         print(f"hitting for card {card}")
         mock_hand.hit(card)
 
-    assert mock_hand.cards == [blackjack.Card.from_str(card) for card in cards]
+    assert mock_hand.cards == [deck.Card.from_id(card) for card in cards]
     mock_hand.cards = []
 
 
@@ -242,7 +242,7 @@ def test__hand__deal__by_keys(mock_hand: participants.Hand, cards: list[str]):
     assert len(mock_hand) == 0
     mock_hand.deal(_keys=cards)
     assert len(mock_hand) == 2
-    assert mock_hand.cards == [blackjack.Card.from_str(card) for card in cards]
+    assert mock_hand.cards == [deck.Card.from_id(card) for card in cards]
 
 
 def test__hand__deal__raises(mock_hand: participants.Hand):
@@ -284,8 +284,8 @@ def test__dealer_hand__evaluate(mock_game: blackjack.Game):
 
     assert len(dealer_hand) == 0
     dealer_hand.cards = [
-        blackjack.Card.from_str("2C"),
-        blackjack.Card.from_str("AC"),
+        deck.Card.from_id("2C"),
+        deck.Card.from_id("AC"),
     ]
     dealer_hand.evaluate()
     assert len(dealer_hand) >= 2
@@ -333,9 +333,9 @@ def test__player_hand__options(
 
     TODO: Improve this with more cases (especially for dealer hands).
     """
-    mock_game.dealer.hand.cards = [blackjack.Card.from_str("AS")]
+    mock_game.dealer.hand.cards = [deck.Card.from_id("AS")]
     player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [blackjack.Card.from_str(card) for card in cards]
+    player_hand.cards = [deck.Card.from_id(card) for card in cards]
 
     assert player_hand.options == options
 # fmt: on
@@ -374,10 +374,10 @@ def test__player_hand__evaluate(
     TODO: Improve this with more cases (especially for dealer hands).
     """
     player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [blackjack.Card.from_str(card) for card in cards]
+    player_hand.cards = [deck.Card.from_id(card) for card in cards]
     mock_game.dealer.hand.cards = [
-        blackjack.Card.from_str("TS"),
-        blackjack.Card.from_str("9S"),
+        deck.Card.from_id("TS"),
+        deck.Card.from_id("9S"),
     ]
 
     player_hand.evaluate()
@@ -391,8 +391,8 @@ def test__player_hand__split(mock_player: participants.Player):
     mock_player.add_hand(bet=10)
     player_hand = mock_player.hands[0]
     player_hand.cards = [
-        blackjack.Card.from_str("TC"),
-        blackjack.Card.from_str("TD"),
+        deck.Card.from_id("TC"),
+        deck.Card.from_id("TD"),
     ]
 
     assert len(mock_player.hands) == 1
@@ -403,12 +403,12 @@ def test__player_hand__split(mock_player: participants.Player):
     assert hand_1.bet == hand_0.bet
 
     assert len(hand_0) == 2
-    assert hand_0.cards[0] == blackjack.Card.from_str("TC")
+    assert hand_0.cards[0] == deck.Card.from_id("TC")
     assert hand_0.from_split is False
     assert hand_0.playing is True
 
     assert len(hand_1) == 2
-    assert hand_1.cards[0] == blackjack.Card.from_str("TD")
+    assert hand_1.cards[0] == deck.Card.from_id("TD")
     assert hand_1.from_split is True
     assert hand_1.playing is True
 
@@ -420,8 +420,8 @@ def test__player_hand__split__from_aces(mock_player: participants.Player):
     mock_player.add_hand(bet=10)
     player_hand = mock_player.hands[0]
     player_hand.cards = [
-        blackjack.Card.from_str("AC"),
-        blackjack.Card.from_str("AD"),
+        deck.Card.from_id("AC"),
+        deck.Card.from_id("AD"),
     ]
 
     assert len(mock_player.hands) == 1
@@ -432,12 +432,12 @@ def test__player_hand__split__from_aces(mock_player: participants.Player):
     assert hand_1.bet == hand_0.bet
 
     assert len(hand_0) == 2
-    assert hand_0.cards[0] == blackjack.Card.from_str("AC")
+    assert hand_0.cards[0] == deck.Card.from_id("AC")
     assert hand_0.from_split is False
     assert hand_0.playing is False
 
     assert len(hand_1) == 2
-    assert hand_1.cards[0] == blackjack.Card.from_str("AD")
+    assert hand_1.cards[0] == deck.Card.from_id("AD")
     assert hand_1.from_split is True
     assert hand_1.playing is False
 
@@ -484,8 +484,8 @@ def test__player_option__action(
     mock_player.add_hand(bet=10)
     player_hand = mock_player.hands[0]
     player_hand.cards = [
-        blackjack.Card.from_str("TC"),
-        blackjack.Card.from_str("TD"),
+        deck.Card.from_id("TC"),
+        deck.Card.from_id("TD"),
     ]
 
     assert player_hand.playing is True
@@ -531,8 +531,8 @@ def test__dealer__play_hand(mock_game: blackjack.Game):
 
     assert len(dealer.hand) == 0
     dealer.hand.cards = [
-        blackjack.Card.from_str("2C"),
-        blackjack.Card.from_str("AC"),
+        deck.Card.from_id("2C"),
+        deck.Card.from_id("AC"),
     ]
     dealer.play_hand()
     assert len(dealer.hand) >= 2
@@ -557,14 +557,14 @@ def test__player(mock_game: blackjack.Game):
     assert player.insurance == 0
 
 
-def test__player__str__(mock_player: blackjack.Player):
+def test__player__str__(mock_player: participants.Player):
     """
     Test the ``Player.__str__()`` method.
     """
     assert str(mock_player) == "Mock Player"
 
 
-def test__player__len(mock_player: blackjack.Player):
+def test__player__len(mock_player: participants.Player):
     """
     Test the ``Player.__len__()`` method.
     """
@@ -575,7 +575,7 @@ def test__player__len(mock_player: blackjack.Player):
     assert len(mock_player) == 2
 
 
-def test__player__getitem(mock_player: blackjack.Player):
+def test__player__getitem(mock_player: participants.Player):
     """
     Test the ``Player.__getitem__()`` method.
     """
@@ -586,7 +586,7 @@ def test__player__getitem(mock_player: blackjack.Player):
     assert mock_player[1] == mock_player.hands[1]
 
 
-def test__player__add_hand(mock_player: blackjack.Player):
+def test__player__add_hand(mock_player: participants.Player):
     """
     Test the ``Player.add_hand()`` method.
     """
@@ -597,7 +597,7 @@ def test__player__add_hand(mock_player: blackjack.Player):
     assert len(mock_player) == 2
 
 
-def test__player__clear_hands(mock_player: blackjack.Player):
+def test__player__clear_hands(mock_player: participants.Player):
     """
     Test the ``Player.clear_hands()`` method.
     """
@@ -610,7 +610,7 @@ def test__player__clear_hands(mock_player: blackjack.Player):
 
 
 def test__player__add_money(
-    mock_player: blackjack.Player,
+    mock_player: participants.Player,
     capsys: pytest.CaptureFixture,
 ):
     """
@@ -625,7 +625,7 @@ def test__player__add_money(
 
 
 def test__player__print_money(
-    mock_player: blackjack.Player,
+    mock_player: participants.Player,
     capsys: pytest.CaptureFixture,
 ):
     """
@@ -637,7 +637,7 @@ def test__player__print_money(
     assert captured.out.strip() == "Mock Player has 500 money"
 
 
-def test__player__name_and_money(mock_player: blackjack.Player):
+def test__player__name_and_money(mock_player: participants.Player):
     """
     Test the ``Player.print_name_and_money()`` method.
     """
@@ -645,8 +645,8 @@ def test__player__name_and_money(mock_player: blackjack.Player):
 
     mock_player.add_hand(bet=10)
     mock_player.hands[0].cards = [
-        blackjack.Card.from_str("TC"),
-        blackjack.Card.from_str("TD"),
+        deck.Card.from_id("TC"),
+        deck.Card.from_id("TD"),
     ]
     assert len(mock_player.hands) == 1
     assert mock_player.name_and_money == textwrap.dedent(
@@ -658,8 +658,8 @@ def test__player__name_and_money(mock_player: blackjack.Player):
 
     mock_player.add_hand(bet=10)
     mock_player.hands[1].cards = [
-        blackjack.Card.from_str("AC"),
-        blackjack.Card.from_str("AD"),
+        deck.Card.from_id("AC"),
+        deck.Card.from_id("AD"),
     ]
     assert len(mock_player.hands) == 2
     assert mock_player.name_and_money == textwrap.dedent(

@@ -26,3 +26,25 @@
 ## Cards In Play
 
 - Use all cards in play to determine strategy
+
+## Odd results
+
+Why did this count as a loss?
+
+```
+Dealer
+[9D ??] [{9}]
+
+Player_0 has £500 with hand:
+    [2H 4C] {6}  stake: £10
+
+Playing hand [2H 4C] {6}
+[s] Stand, [h] Hit, [d] Double down? h
+Playing hand [2H 4C 5D] {11}
+[s] Stand, [h] Hit? h
+Playing hand [2H 4C 5D JH] {21}
+[s] Stand, [h] Hit? s
+Dealer's hand:    [9D 7H AS] {17}
+Player_0's hand:    [2H 4C 5D JH] {21}
+Outcome: lose
+```
