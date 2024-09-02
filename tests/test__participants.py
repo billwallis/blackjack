@@ -310,7 +310,7 @@ def test__player_hand(mock_player: participants.Player):
 
 # fmt: off
 _opt = participants.PlayerOption  # For brevity
-@pytest.mark.parametrize(  # noqa: E302
+@pytest.mark.parametrize(
     "cards, options",
     [
         (["TC", "AC"], [_opt.TAKE_INSURANCE, _opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
@@ -455,7 +455,10 @@ def test__player_option__readable():
     assert participants.PlayerOption.HIT.readable == "[h] Hit"
     assert participants.PlayerOption.DOUBLE_DOWN.readable == "[d] Double down"
     assert participants.PlayerOption.SPLIT.readable == "[sp] Split"
-    assert participants.PlayerOption.TAKE_INSURANCE.readable == "[t] Take insurance"
+    assert (
+        participants.PlayerOption.TAKE_INSURANCE.readable
+        == "[t] Take insurance"
+    )
 
 
 @pytest.mark.parametrize(

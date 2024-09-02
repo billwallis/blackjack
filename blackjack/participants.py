@@ -5,6 +5,7 @@ Define the participants in the game.
 This includes the dealer (AKA "the house") and the players, both of
 which have a corresponding hand that holds some cards.
 """
+
 from __future__ import annotations
 
 import abc
@@ -62,36 +63,35 @@ class Hand(abc.ABC):
         """
         if self.cards:
             return sum(card.values for card in self.cards)  # type: ignore
-        else:
-            return blackjack.Values({0})
+        return blackjack.Values({0})
 
     @property
     def blackjack(self) -> bool:
         """
         Whether the hand is a blackjack (21 with two cards).
         """
-        return len(self) == 2 and max(self.values.eligible_values) == 21
+        return len(self) == 2 and max(self.values.eligible_values) == 21  # noqa: PLR2004
 
     @property
     def bust(self) -> bool:
         """
         Whether the hand is a bust (over 21).
         """
-        return min(self.values) > 21
+        return min(self.values) > 21  # noqa: PLR2004
 
-    def hit(self, _key: str = None) -> None:
+    def hit(self, _key: str | None = None) -> None:
         """
         Take a card from the deck and add it to the hand.
         """
         self.cards.append(self.game.deck.take_card(_key))
 
-    def deal(self, _keys: list[str] = None) -> None:
+    def deal(self, _keys: list[str] | None = None) -> None:
         """
         Deal two cards to the hand from the deck.
         """
-        assert len(self) == 0, "This hand has already been dealt to"
+        assert len(self) == 0, "This hand has already been dealt to"  # noqa: S101
         if _keys:
-            assert len(_keys) == 2, "Can only deal two cards"
+            assert len(_keys) == 2, "Can only deal two cards"  # noqa: S101,PLR2004
             [self.hit(key) for key in _keys]
         else:
             self.hit(), self.hit()
@@ -135,8 +135,8 @@ class DealerHand(Hand):
 
         The dealer must hit on 16 or less and stand on 17 or more.
         """
-        assert len(self) == 2, "Dealer must have two cards to play"
-        while max(self.values) < 17:
+        assert len(self) == 2, "Dealer must have two cards to play"  # noqa: S101,PLR2004
+        while max(self.values) < 17:  # noqa: PLR2004
             self.hit()
         self.playing = False
 
@@ -167,7 +167,7 @@ class PlayerHand(Hand):
         """
         if self.bust:
             return []
-        elif self.blackjack:
+        if self.blackjack:
             if self.participant.game.dealer.hand.cards[0].rank == 1:
                 return [
                     PlayerOption.TAKE_INSURANCE,
@@ -175,9 +175,8 @@ class PlayerHand(Hand):
                     PlayerOption.HIT,
                     PlayerOption.DOUBLE_DOWN,
                 ]
-            else:
-                return []
-        elif len(self) == 2 and self.participant.money > self.bet:
+            return []
+        if len(self) == 2 and self.participant.money > self.bet:  # noqa: PLR2004
             if self[0].rank == self[1].rank:
                 return [
                     PlayerOption.STAND,
@@ -185,10 +184,12 @@ class PlayerHand(Hand):
                     PlayerOption.DOUBLE_DOWN,
                     PlayerOption.SPLIT,
                 ]
-            else:
-                return [PlayerOption.STAND, PlayerOption.HIT, PlayerOption.DOUBLE_DOWN]
-        else:
-            return [PlayerOption.STAND, PlayerOption.HIT]
+            return [
+                PlayerOption.STAND,
+                PlayerOption.HIT,
+                PlayerOption.DOUBLE_DOWN,
+            ]
+        return [PlayerOption.STAND, PlayerOption.HIT]
 
     def play_hand(self) -> None:
         """
@@ -200,18 +201,20 @@ class PlayerHand(Hand):
         """
         # Split from Ace's should never come down here
         if self.from_split:
-            assert self[0].rank != 1
-            assert self[1].rank != 1
+            assert self[0].rank != 1  # noqa: S101
+            assert self[1].rank != 1  # noqa: S101
 
         while self.playing:
-            print(f"Playing hand {str(self)}")
+            print(f"Playing hand {self!s}")
 
             options = self.options
             if not options:
                 self.playing = False
                 break
 
-            player_options = ", ".join(option.readable for option in options) + "?"
+            player_options = (
+                ", ".join(option.readable for option in options) + "?"
+            )
             decision = None
             while not decision:
                 decision_key = input(f"{player_options} ")
@@ -226,7 +229,9 @@ class PlayerHand(Hand):
         Evaluate the hand and update the outcome.
         """
         dealer = self.participant.game.dealer
-        hand_value = max(self.values if self.bust else self.values.eligible_values)
+        hand_value = max(
+            self.values if self.bust else self.values.eligible_values
+        )
         dealer_value = max(dealer.hand.values)
 
         if self.bust:
@@ -247,7 +252,9 @@ class PlayerHand(Hand):
         elif hand_value > dealer_value:
             self.outcome = PlayerOutcome.WIN
         else:
-            raise ValueError(f"Unexpected state: {hand_value=}, {dealer_value=}")
+            raise ValueError(
+                f"Unexpected state: {hand_value=}, {dealer_value=}"
+            )
 
         self.show_cards()
         print(f"Outcome: {self.outcome.value}")
@@ -257,8 +264,8 @@ class PlayerHand(Hand):
         Split the hand into two hands.
         """
         # fmt: off
-        assert len(self) == 2, f"Can't split a hand with {len(self)} cards"
-        assert (self[0].rank == self[1].rank), f"Can't split a hand with cards {self[0]} and {self[1]}"
+        assert len(self) == 2, f"Can't split a hand with {len(self)} cards"  # noqa: S101,PLR2004
+        assert (self[0].rank == self[1].rank), f"Can't split a hand with cards {self[0]} and {self[1]}"  # noqa: S101
         # fmt: on
 
         new_hand = self.participant.add_hand(bet=self.bet)
@@ -373,7 +380,12 @@ class Player(Participant):
     money: float
     insurance: float = 0  # TODO: need to include insurance somewhere
 
-    def __init__(self, game: blackjack.Game, name: str = None, money: float = 500):
+    def __init__(
+        self,
+        game: blackjack.Game,
+        name: str | None = None,
+        money: float = 500,
+    ):
         """
         Instantiate a player in a game of Blackjack.
 
@@ -382,7 +394,9 @@ class Player(Participant):
         :param money: The amount of money the player has.
         """
         # I think this violates the Liskov substitution principle
-        super().__init__(game=game, name=name or f"Player_{1 + len(game.players)}")
+        super().__init__(
+            game=game, name=name or f"Player_{1 + len(game.players)}"
+        )
         self.hands = []
         self.money = money
 
@@ -392,7 +406,7 @@ class Player(Participant):
     def __getitem__(self, position):
         return self.hands[position]
 
-    def add_hand(self, bet: float = None) -> PlayerHand:
+    def add_hand(self, bet: float | None = None) -> PlayerHand:
         """
         Add a hand to the player.
         """
@@ -422,7 +436,7 @@ class Player(Participant):
         """
         Print the player's money.
         """
-        print(f"{self.name} has {str(self.money)} money")
+        print(f"{self.name} has {self.money!s} money")
 
     @property
     def name_and_money(self) -> str:

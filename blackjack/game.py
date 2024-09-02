@@ -4,6 +4,7 @@ Define the game.
 
 This brings together the participants and the deck to play the game.
 """
+
 from __future__ import annotations
 
 from blackjack import deck as deck_
@@ -51,7 +52,7 @@ class Game:
         :param num_decks: The number of decks to add.
         :return: The stack of decks for the game.
         """
-        assert not hasattr(self, "deck"), "A deck already exists in this game"
+        assert not hasattr(self, "deck"), "A deck already exists in this game"  # noqa: S101
 
         new_deck = deck_.Deck(num_decks=num_decks)
         self.deck = new_deck
@@ -64,7 +65,9 @@ class Game:
 
         :return: The dealer for the game.
         """
-        assert not hasattr(self, "dealer"), "A dealer already exists in this game"
+        assert not hasattr(  # noqa: S101
+            self, "dealer"
+        ), "A dealer already exists in this game"
 
         new_dealer = participants.Dealer(game=self)
         self.dealer = new_dealer

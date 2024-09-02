@@ -51,7 +51,9 @@ def test__game__standard_setup(mock_game: game.Game):
     assert len(mock_game.deck) == 52 * 6
     assert type(mock_game.deck) is deck.Deck
     assert type(mock_game.dealer) is participants.Dealer
-    assert all(type(player) is participants.Player for player in mock_game.players)
+    assert all(
+        type(player) is participants.Player for player in mock_game.players
+    )
 
 
 def test__game__add_deck(mock_game: game.Game):
