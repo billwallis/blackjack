@@ -43,8 +43,8 @@ class Suit(enum.StrEnum):
     DIAMOND = enum.auto()
 
     def __init__(self, *args, **kwargs):  # noqa: signature required for __new__
-        assert self._get("_name")
-        assert self._get("_value")
+        assert self._get("_name")  # noqa: S101
+        assert self._get("_value")  # noqa: S101
 
     def __lt__(self, other: Suit) -> bool:
         order = {
@@ -116,8 +116,8 @@ class Rank(enum.IntEnum):
     KING = enum.auto()
 
     def __init__(self, *args, **kwargs):  # noqa: signature required for __new__
-        assert self._get("_name")
-        assert self._get("_value")
+        assert self._get("_name")  # noqa: S101
+        assert self._get("_value")  # noqa: S101
 
     def _get(self, _key: Any, /) -> Any:
         """
@@ -171,10 +171,9 @@ class Values:
     def __eq__(self, other: set[int] | Values) -> bool:
         if isinstance(other, Values):
             return self._values == other._values
-        elif isinstance(other, set):
+        if isinstance(other, set):
             return self._values == other
-        else:
-            return NotImplemented
+        return NotImplemented
 
     def __lt__(self, other: Values) -> bool:
         return max(self._values) < max(other._values)
@@ -184,10 +183,11 @@ class Values:
 
     def __add__(self, other: int | Values) -> Values:
         other_: set[int] = {other} if isinstance(other, int) else other._values
-        if isinstance(other, (int, Values)):
-            return Values({sum(p) for p in itertools.product(self._values, other_)})
-        else:
-            return NotImplemented
+        if isinstance(other, int | Values):
+            return Values(
+                {sum(p) for p in itertools.product(self._values, other_)}
+            )
+        return NotImplemented
 
     def __radd__(self, other: int | Values) -> Values:
         return self + other
@@ -197,7 +197,7 @@ class Values:
         """
         The eligible values for winning.
         """
-        return Values({value for value in self._values if value <= 21})
+        return Values({value for value in self._values if value <= 21})  # noqa: PLR2004
 
 
 @dataclasses.dataclass
@@ -224,10 +224,9 @@ class Card:
         """
         if isinstance(other, int):
             return self.values + other
-        elif isinstance(other, Card):
+        if isinstance(other, Card):
             return self.values + other.values
-        else:
-            return NotImplemented
+        return NotImplemented
 
     def __radd__(self, other: int | Card) -> Values:
         return self + other
@@ -237,7 +236,7 @@ class Card:
         """
         Return a ``Card`` corresponding to the string.
         """
-        if len(_key) != 2:
+        if len(_key) != 2:  # noqa: PLR2004
             raise KeyError(f"The key, {_key}, should be 2 characters")
         return cls(Rank.from_id(_key[0]), Suit.from_id(_key[1]))
 
@@ -303,7 +302,9 @@ class Deck:
         """
         self.cards = [
             Card(rank, suit)
-            for _, rank, suit in itertools.product(range(self._num_decks), Rank, Suit)
+            for _, rank, suit in itertools.product(
+                range(self._num_decks), Rank, Suit
+            )
         ]
 
         self.shuffle()
@@ -314,7 +315,7 @@ class Deck:
         """
         random.shuffle(self.cards)
 
-    def take_card(self, _key: str = None) -> Card:
+    def take_card(self, _key: str | None = None) -> Card:
         """
         Return the top card from the deck.
 
@@ -339,3 +340,5 @@ class Deck:
         for i, card in enumerate(self.cards):
             if str(card) == key:
                 return self.cards.pop(i)
+
+        raise IndexError(f"Card with key '{key}' not found in the deck")
