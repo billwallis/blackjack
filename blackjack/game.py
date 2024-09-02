@@ -54,7 +54,7 @@ class Game:
         """
         assert not hasattr(self, "deck"), "A deck already exists in this game"  # noqa: S101
 
-        new_deck = deck_.Deck(num_decks=num_decks)
+        new_deck = deck_.Deck(num_decks)
         self.deck = new_deck
 
         return new_deck

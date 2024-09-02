@@ -12,6 +12,7 @@ import abc
 import enum
 
 import blackjack
+from blackjack import deck
 
 
 class Hand(abc.ABC):
@@ -21,7 +22,7 @@ class Hand(abc.ABC):
 
     game: blackjack.Game
     participant: Participant
-    cards: list[blackjack.Card]
+    cards: list[deck.Card]
     playing: bool = True
 
     def __init__(self, game: blackjack.Game, participant: Participant):
@@ -53,17 +54,17 @@ class Hand(abc.ABC):
     def __len__(self) -> int:
         return len(self.cards)
 
-    def __getitem__(self, position: int) -> blackjack.Card:
+    def __getitem__(self, position: int) -> deck.Card:
         return self.cards[position]
 
     @property
-    def values(self) -> blackjack.Values:
+    def values(self) -> deck.Values:
         """
         The set-value of the hand accounting for Aces.
         """
         if self.cards:
             return sum(card.values for card in self.cards)  # type: ignore
-        return blackjack.Values({0})
+        return deck.Values({0})
 
     @property
     def blackjack(self) -> bool:
