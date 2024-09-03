@@ -94,6 +94,21 @@ def test__game__add_player(mock_game: game.Game):
     assert mock_game.players[1].name == "Player_2"
 
 
+def test__game__add_player__raises(mock_game: game.Game):
+    """
+    Test the ``Game.add_player()`` method.
+    """
+    assert mock_game.players == []
+
+    mock_game.add_player("Player_1")
+    assert len(mock_game.players) == 1
+    assert type(mock_game.players[0]) is participants.Player
+    assert mock_game.players[0].name == "Player_1"
+
+    with pytest.raises(ValueError):
+        mock_game.add_player("Player_1")
+
+
 @pytest.mark.skip(reason="Not implemented")
 def test__game__play_round(mock_game: game.Game):
     """
