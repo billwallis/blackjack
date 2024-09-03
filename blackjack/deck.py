@@ -52,8 +52,10 @@ class Values:
         yield from self._values
 
     def __add__(self, other: int | Values) -> Values:
-        other_: set[int] = {other} if isinstance(other, int) else other._values
         if isinstance(other, int | Values):
+            other_: set[int] = (
+                {other} if isinstance(other, int) else other._values
+            )
             return Values(
                 {sum(p) for p in itertools.product(self._values, other_)}
             )

@@ -91,6 +91,14 @@ def test__values__add(
     assert value_1 + value_2 == result
 
 
+def test__values__add_raises():
+    """
+    Test the ``Values.__add__()`` method.
+    """
+    with pytest.raises(TypeError):
+        deck.Values({1}) + "1"  # type: ignore
+
+
 @pytest.mark.parametrize(
     "values, eligible_values",
     [

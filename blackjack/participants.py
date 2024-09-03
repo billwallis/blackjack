@@ -233,7 +233,10 @@ class PlayerHand(Hand):
         hand_value = max(
             self.values if self.bust else self.values.eligible_values
         )
-        dealer_value = max(dealer.hand.values)
+        dealer_value = max(
+            (value for value in dealer.hand.values if value <= 21),  # noqa: PLR2004
+            default=99,
+        )
 
         if self.bust:
             self.outcome = PlayerOutcome.LOSE
@@ -252,10 +255,6 @@ class PlayerHand(Hand):
             self.outcome = PlayerOutcome.DRAW
         elif hand_value > dealer_value:
             self.outcome = PlayerOutcome.WIN
-        else:
-            raise ValueError(
-                f"Unexpected state: {hand_value=}, {dealer_value=}"
-            )
 
         self.show_cards()
         print(f"Outcome: {self.outcome.value}")
