@@ -115,3 +115,20 @@ def test__game__play_round(mock_game: game.Game):
     Test the ``Game.play_round()`` method.
     """
     pass
+
+
+def test__dealer_hand__evaluate(mock_game: game.Game):
+    """
+    Test the ``DealerHand.evaluate()`` method.
+    """
+    mock_game.add_deck(1)
+    dealer = mock_game.add_dealer()
+    assert len(dealer.hand) == 0
+
+    dealer.hand.cards = [
+        deck.Card.from_id("2C"),
+        deck.Card.from_id("AC"),
+    ]
+    mock_game.evaluate_dealer()
+    assert len(dealer.hand) >= 2
+    assert max(dealer.hand.values) >= 17

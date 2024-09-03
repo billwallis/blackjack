@@ -69,7 +69,7 @@ class Game:
             self, "dealer"
         ), "A dealer already exists in this game"
 
-        new_dealer = participants.Dealer(game=self)
+        new_dealer = participants.Dealer()
         self.dealer = new_dealer
 
         return new_dealer
@@ -100,18 +100,29 @@ class Game:
         self.round += 1
 
         # Place bets, then deal
-        [player.add_hand() for player in self.players]
-        [player[0].deal() for player in self.players]
-        self.dealer.hand.deal()
+        [player.add_hand(self.min_bet) for player in self.players]
+        [player[0].deal(self.deck) for player in self.players]
+        self.dealer.hand.deal(self.deck)
 
         print(self.dealer, self.dealer.hand, sep="\n")
         for player in self.players:
             print(player.name_and_money)
             for hand in player.hands:
-                hand.play_hand()
+                hand.play_hand(self)
 
-        self.dealer.play_hand()
+        self.evaluate_dealer()
         self.dealer.hand.show_cards()
         for player in self.players:
             for hand in player.hands:
-                hand.evaluate()
+                hand.evaluate(self)
+
+    def evaluate_dealer(self) -> None:
+        """
+        Play the dealer's hand.
+
+        The dealer must hit on 16 or less and stand on 17 or more.
+        """
+        assert len(self.dealer.hand) == 2, "Dealer must have two cards to play"  # noqa: S101,PLR2004
+        while max(self.dealer.hand.values) < 17:  # noqa: PLR2004
+            self.dealer.hand.hit(self.deck)
+        self.dealer.hand.playing = False

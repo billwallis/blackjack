@@ -16,19 +16,8 @@ class MockHand(participants.Hand):
 
 
 @pytest.fixture
-def mock_game() -> blackjack.Game:
-    """
-    Create a mock ``Game`` instance.
-    """
-    game_ = blackjack.Game()
-    game_.standard_setup(num_players=6, num_decks=6)
-
-    return game_
-
-
-@pytest.fixture
-def dealer_with_17(mock_game: blackjack.Game) -> participants.Dealer:
-    dealer = participants.Dealer(mock_game)
+def dealer_with_17() -> participants.Dealer:
+    dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("TS"),
         deck.Card.from_id("7S"),
@@ -37,10 +26,8 @@ def dealer_with_17(mock_game: blackjack.Game) -> participants.Dealer:
 
 
 @pytest.fixture
-def dealer_with_ace_first_blackjack(
-    mock_game: blackjack.Game,
-) -> participants.Dealer:
-    dealer = participants.Dealer(mock_game)
+def dealer_with_ace_first_blackjack() -> participants.Dealer:
+    dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("AS"),
         deck.Card.from_id("TS"),
@@ -49,10 +36,8 @@ def dealer_with_ace_first_blackjack(
 
 
 @pytest.fixture
-def dealer_with_ten_first_blackjack(
-    mock_game: blackjack.Game,
-) -> participants.Dealer:
-    dealer = participants.Dealer(mock_game)
+def dealer_with_ten_first_blackjack() -> participants.Dealer:
+    dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("TS"),
         deck.Card.from_id("AS"),
@@ -61,8 +46,8 @@ def dealer_with_ten_first_blackjack(
 
 
 @pytest.fixture
-def dealer_with_bust(mock_game: blackjack.Game) -> participants.Dealer:
-    dealer = participants.Dealer(mock_game)
+def dealer_with_bust() -> participants.Dealer:
+    dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("TS"),
         deck.Card.from_id("TC"),
@@ -87,34 +72,28 @@ def mock_hand(
     """
     Create a mock ``Hand`` instance.
     """
-    return MockHand(game=mock_game, participant=mock_player)
+    return MockHand(participant=mock_player)
 
 
 ###
 # Hand tests
 ###
 def test__hand(
-    mock_game: blackjack.Game,
     mock_player: participants.Player,
     mock_hand: participants.Hand,
 ):
     """
     Test the construction of the ``Hand`` class.
     """
-    assert mock_hand.game == mock_game
     assert mock_hand.participant == mock_player
     assert mock_hand.cards == []
 
 
-def test__hand__from_participant(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-):
+def test__hand__from_participant(mock_player: participants.Player):
     """
     Test the construction of the ``Hand`` class from a participant.
     """
     mock_hand = MockHand.from_participant(mock_player)
-    assert mock_hand.game == mock_game
     assert mock_hand.participant == mock_player
     assert mock_hand.cards == []
 
@@ -229,12 +208,12 @@ def test__hand__bust(
     assert mock_hand.bust is expected
 
 
-def test__hand__hit(mock_hand: participants.Hand):
+def test__hand__hit(mock_game: blackjack.Game, mock_hand: participants.Hand):
     """
     Test the ``Hand.hit()`` method.
     """
     assert len(mock_hand) == 0
-    mock_hand.hit()
+    mock_hand.hit(mock_game.deck)
     assert len(mock_hand) == 1
 
 
@@ -250,24 +229,26 @@ def test__hand__hit(mock_hand: participants.Hand):
         (["TC", "TD", "2C"]),
     ],
 )
-def test__hand__hit__by_key(mock_hand: participants.Hand, cards: list[str]):
+def test__hand__hit__by_key(
+    mock_game: blackjack.Game, mock_hand: participants.Hand, cards: list[str]
+):
     """
     Test the ``Hand.hit()`` method with specific cards.
     """
     for card in cards:
         print(f"hitting for card {card}")
-        mock_hand.hit(card)
+        mock_hand.hit(mock_game.deck, card)
 
     assert mock_hand.cards == [deck.Card.from_id(card) for card in cards]
     mock_hand.cards = []
 
 
-def test__hand__deal(mock_hand: participants.Hand):
+def test__hand__deal(mock_game: blackjack.Game, mock_hand: participants.Hand):
     """
     Test the ``Hand.deal()`` method.
     """
     assert len(mock_hand) == 0
-    mock_hand.deal()
+    mock_hand.deal(mock_game.deck)
     assert len(mock_hand) == 2
 
 
@@ -279,28 +260,35 @@ def test__hand__deal(mock_hand: participants.Hand):
         (["AC", "AD"]),
     ],
 )
-def test__hand__deal__by_keys(mock_hand: participants.Hand, cards: list[str]):
+def test__hand__deal__by_keys(
+    mock_game: blackjack.Game, mock_hand: participants.Hand, cards: list[str]
+):
     """
     Test the ``Hand.deal()`` method with specific cards.
     """
     assert len(mock_hand) == 0
-    mock_hand.deal(_keys=cards)
+    mock_hand.deal(mock_game.deck, _keys=cards)
     assert len(mock_hand) == 2
     assert mock_hand.cards == [deck.Card.from_id(card) for card in cards]
 
 
-def test__hand__deal__raises(mock_hand: participants.Hand):
+def test__hand__deal__raises(
+    mock_game: blackjack.Game, mock_hand: participants.Hand
+):
     """
     Test that the ``Hand.deal()`` method raises an exception.
     """
     assert len(mock_hand) == 0
-    assert pytest.raises(AssertionError, mock_hand.deal, _keys=["AC"])
+    with pytest.raises(AssertionError):
+        mock_hand.deal(mock_game.deck, _keys=["AC"])
 
-    mock_hand.deal()
-    assert pytest.raises(AssertionError, mock_hand.deal)
+    mock_hand.deal(mock_game.deck)
+    with pytest.raises(AssertionError):
+        mock_hand.deal(mock_game.deck)
 
 
 def test__hand__show_cards(
+    mock_game: blackjack.Game,
     mock_hand: participants.Hand,
     capsys: pytest.CaptureFixture,
 ):
@@ -308,7 +296,7 @@ def test__hand__show_cards(
     Test the ``Hand.show_cards()`` method.
     """
     assert len(mock_hand) == 0
-    mock_hand.deal(["TC", "AC"])
+    mock_hand.deal(mock_game.deck, ["TC", "AC"])
     mock_hand.show_cards()
     captured = capsys.readouterr()
     assert captured.out == "Mock Player's hand:    [TC AC] {11, 21}\n"
@@ -317,12 +305,12 @@ def test__hand__show_cards(
 ###
 # DealerHand tests
 ###
-def test__dealer_hand(mock_game: blackjack.Game):
+def test__dealer_hand():
     """
     Test the ``DealerHand.evaluate()`` method.
     """
-    dealer = participants.Dealer(mock_game)
-    dealer_hand = participants.DealerHand(mock_game, dealer)
+    dealer = participants.Dealer()
+    dealer_hand = participants.DealerHand(dealer)
     assert len(dealer_hand) == 0
 
     dealer_hand.cards = [
@@ -335,23 +323,6 @@ def test__dealer_hand(mock_game: blackjack.Game):
     assert str(dealer_hand) == "[2C AC] {3, 13}"
 
 
-def test__dealer_hand__evaluate(mock_game: blackjack.Game):
-    """
-    Test the ``DealerHand.evaluate()`` method.
-    """
-    dealer = participants.Dealer(mock_game)
-    dealer_hand = participants.DealerHand(mock_game, dealer)
-
-    assert len(dealer_hand) == 0
-    dealer_hand.cards = [
-        deck.Card.from_id("2C"),
-        deck.Card.from_id("AC"),
-    ]
-    dealer_hand.evaluate()
-    assert len(dealer_hand) >= 2
-    assert max(dealer_hand.values) >= 17
-
-
 ###
 # PlayerHand tests
 ###
@@ -359,7 +330,6 @@ def test__player_hand(mock_player: participants.Player):
     player_hand = participants.PlayerHand(player=mock_player, bet=10)
 
     assert player_hand.participant == mock_player
-    assert player_hand.game == mock_player.game
     assert player_hand.cards == []
     assert player_hand.bet == 10
     assert player_hand.from_split is False
@@ -395,7 +365,7 @@ def test__player_hand__options__dealer_has_ace(
     player_hand = participants.PlayerHand(player=mock_player, bet=10)
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
 
-    assert player_hand.options == options
+    assert player_hand.get_options(mock_game) == options
 
 
 def test__player_hand__options__dealer_no_ace(
@@ -410,7 +380,7 @@ def test__player_hand__options__dealer_no_ace(
     player_hand = participants.PlayerHand(player=mock_player, bet=10)
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
 
-    assert player_hand.options == options
+    assert player_hand.get_options(mock_game) == options
 # fmt: on
 
 
@@ -451,7 +421,7 @@ def test__player_hand__evaluate__dealer_with_ace_first_blackjack(
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
     mock_game.dealer = dealer_with_ace_first_blackjack
 
-    player_hand.evaluate()
+    player_hand.evaluate(mock_game)
     assert player_hand.outcome is outcome
 
 
@@ -484,7 +454,7 @@ def test__player_hand__evaluate__dealer_with_ten_first_blackjack(
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
     mock_game.dealer = dealer_with_ten_first_blackjack
 
-    player_hand.evaluate()
+    player_hand.evaluate(mock_game)
     assert player_hand.outcome is outcome
 
 
@@ -517,7 +487,7 @@ def test__player_hand__evaluate__dealer_with_17(
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
     mock_game.dealer = dealer_with_17
 
-    player_hand.evaluate()
+    player_hand.evaluate(mock_game)
     assert player_hand.outcome is outcome
 
 
@@ -550,7 +520,7 @@ def test__player_hand__evaluate__dealer_with_bust(
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
     mock_game.dealer = dealer_with_bust
 
-    player_hand.evaluate()
+    player_hand.evaluate(mock_game)
     assert player_hand.outcome is outcome
 
 
@@ -566,18 +536,20 @@ def test__player_hand__evaluate__edge_cases(
         deck.Card.from_id(card) for card in ["2H", "4C", "5D", "JH"]
     ]
 
-    mock_game.dealer = participants.Dealer(mock_game)
+    mock_game.dealer = participants.Dealer()
     mock_game.dealer.hand.cards = [
         deck.Card.from_id(card) for card in ["9D", "7H", "AS"]
     ]
 
-    assert len(mock_player.game.dealer.hand.cards) == 3
+    assert len(mock_game.dealer.hand.cards) == 3
 
-    player_hand.evaluate()
+    player_hand.evaluate(mock_game)
     assert player_hand.outcome is participants.PlayerOutcome.WIN
 
 
-def test__player_hand__split(mock_player: participants.Player):
+def test__player_hand__split(
+    mock_game: blackjack.Game, mock_player: participants.Player
+):
     """
     Test the ``PlayerHand.split()`` method.
     """
@@ -589,7 +561,7 @@ def test__player_hand__split(mock_player: participants.Player):
     ]
 
     assert len(mock_player.hands) == 1
-    player_hand.split()
+    player_hand.split(mock_game.deck)
     assert len(mock_player.hands) == 2
     hand_0: participants.PlayerHand = mock_player.hands[0]
     hand_1: participants.PlayerHand = mock_player.hands[1]
@@ -606,7 +578,9 @@ def test__player_hand__split(mock_player: participants.Player):
     assert hand_1.playing is True
 
 
-def test__player_hand__split__from_aces(mock_player: participants.Player):
+def test__player_hand__split__from_aces(
+    mock_game: blackjack.Game, mock_player: participants.Player
+):
     """
     Test the ``PlayerHand.split()`` method on a pair of Aces.
     """
@@ -618,7 +592,7 @@ def test__player_hand__split__from_aces(mock_player: participants.Player):
     ]
 
     assert len(mock_player.hands) == 1
-    player_hand.split()
+    player_hand.split(mock_game.deck)
     assert len(mock_player.hands) == 2
     hand_0: participants.PlayerHand = mock_player.hands[0]
     hand_1: participants.PlayerHand = mock_player.hands[1]
@@ -664,7 +638,8 @@ def test__player_option__readable():
         (participants.PlayerOption.TAKE_INSURANCE, False, 1, 2),
     ],
 )
-def test__player_option__action(
+def test__player_option__action(  # noqa: PLR0913
+    mock_game: blackjack.Game,
     mock_player: participants.Player,
     option: participants.PlayerOption,
     playing: str,
@@ -685,7 +660,7 @@ def test__player_option__action(
     assert len(mock_player.hands) == 1
     assert len(player_hand) == 2
 
-    option.action(player_hand)
+    option.action(player_hand, mock_game.deck)
 
     assert player_hand.playing is playing
     assert len(mock_player.hands) == hands
@@ -697,39 +672,22 @@ def test__player_option__action(
 ###
 
 
-def test__dealer(mock_game: blackjack.Game):
+def test__dealer():
     """
     Test the ``Dealer`` class.
     """
-    dealer = participants.Dealer(mock_game)
+    dealer = participants.Dealer()
 
-    assert dealer.game == mock_game
     assert dealer.name == "Dealer"
 
 
-def test__dealer__str(mock_game: blackjack.Game):
+def test__dealer__str():
     """
     Test the ``Dealer`` class.
     """
-    dealer = participants.Dealer(mock_game)
+    dealer = participants.Dealer()
 
     assert str(dealer) == "Dealer"
-
-
-def test__dealer__play_hand(mock_game: blackjack.Game):
-    """
-    Test the ``Dealer.play_hand()`` method.
-    """
-    dealer = participants.Dealer(mock_game)
-
-    assert len(dealer.hand) == 0
-    dealer.hand.cards = [
-        deck.Card.from_id("2C"),
-        deck.Card.from_id("AC"),
-    ]
-    dealer.play_hand()
-    assert len(dealer.hand) >= 2
-    assert max(dealer.hand.values) >= 17
 
 
 ###
@@ -743,7 +701,6 @@ def test__player(mock_game: blackjack.Game):
     """
     player = participants.Player(game=mock_game, name="Mock Player")
 
-    assert player.game == mock_game
     assert player.name == "Mock Player"
     assert player.hands == []
     assert player.money == 500
