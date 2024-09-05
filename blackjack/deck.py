@@ -112,19 +112,5 @@ class Deck(playing_cards.Decks):
     A set of multiple decks of cards.
     """
 
-    def reset(self) -> None:
-        """
-        Reset the deck to have all cards in it, then shuffle it.
-        """
-        rank: playing_cards.Rank  # noqa: F842
-        suit: playing_cards.Suit  # noqa: F842
-        self.cards = [
-            Card(rank, suit)
-            for _, rank, suit in itertools.product(
-                range(self.number_of_decks),
-                playing_cards.Rank,
-                playing_cards.Suit,
-            )
-        ]
-
-        self.shuffle()
+    def __init__(self, number_of_decks: int = 1, card_type=Card):
+        super().__init__(number_of_decks, card_type)  # type: ignore
