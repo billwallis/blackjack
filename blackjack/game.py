@@ -7,8 +7,8 @@ This brings together the participants and the deck to play the game.
 
 from __future__ import annotations
 
+from blackjack import constants, participants
 from blackjack import deck as deck_
-from blackjack import participants
 
 
 class Game:
@@ -104,17 +104,18 @@ class Game:
         [player[0].deal(self.deck) for player in self.players]
         self.dealer.hand.deal(self.deck)
 
-        print(self.dealer, self.dealer.hand, sep="\n")
+        print(self.dealer, self.dealer.hand.show(masked=True), sep="\n")
         for player in self.players:
             print(player.name_and_money)
             for hand in player.hands:
-                hand.play_hand(self)
+                hand.play_hand(self, player)
 
         self.evaluate_dealer()
-        self.dealer.hand.show_cards()
+        print()
+        print(self.dealer.name, self.dealer.hand.show())
         for player in self.players:
             for hand in player.hands:
-                hand.evaluate(self)
+                self.evaluate_player(hand, player)
 
     def evaluate_dealer(self) -> None:
         """
@@ -122,7 +123,46 @@ class Game:
 
         The dealer must hit on 16 or less and stand on 17 or more.
         """
-        assert len(self.dealer.hand) == 2, "Dealer must have two cards to play"  # noqa: S101,PLR2004
-        while max(self.dealer.hand.values) < 17:  # noqa: PLR2004
+        while max(self.dealer.hand.values) < constants.DEALER_LOWER_LIMIT:
             self.dealer.hand.hit(self.deck)
         self.dealer.hand.playing = False
+
+    def evaluate_player(
+        self, hand: participants.Hand, player: participants.Player
+    ) -> None:
+        """
+        Evaluate the hand and update the outcome.
+        """
+        hand_value = max(
+            hand.values if hand.bust else hand.values.eligible_values
+        )
+        dealer_value = max(
+            (
+                value
+                for value in self.dealer.hand.values
+                if value <= constants.BLACKJACK
+            ),
+            default=99,
+        )
+
+        if hand.bust:
+            hand.outcome = participants.PlayerOutcome.LOSE
+        elif self.dealer.hand.blackjack:
+            if hand.blackjack:
+                hand.outcome = participants.PlayerOutcome.DRAW
+            else:
+                # Assuming that dealer blackjack beats player 21
+                print("Dealer has blackjack")
+                hand.outcome = participants.PlayerOutcome.LOSE
+        elif self.dealer.hand.bust:
+            hand.outcome = participants.PlayerOutcome.WIN
+        elif hand_value < dealer_value:
+            hand.outcome = participants.PlayerOutcome.LOSE
+        elif hand_value == dealer_value:
+            hand.outcome = participants.PlayerOutcome.DRAW
+        elif hand_value > dealer_value:
+            hand.outcome = participants.PlayerOutcome.WIN
+
+        print()
+        print(player.name, hand.show())
+        print(f"Outcome: {hand.outcome.value}")

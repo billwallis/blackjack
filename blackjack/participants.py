@@ -12,247 +12,18 @@ import abc
 import enum
 
 import blackjack
+from blackjack import constants
 from blackjack import deck as deck_
 
 
-class Hand(abc.ABC):
+class PlayerOutcome(enum.Enum):
     """
-    A hand, which holds cards.
-    """
-
-    participant: Participant
-    cards: list[deck_.Card]
-    playing: bool = True
-
-    def __init__(self, participant: Participant):
-        """
-        Instantiate a hand for a participant in a game.
-
-        :param participant: The participant that the hand belongs to.
-        """
-        self.participant = participant
-        self.cards = []
-
-    @classmethod
-    def from_participant(cls, participant: Participant) -> Hand:
-        """
-        Instantiate a hand for a participant in a game.
-
-        :param participant: The participant that the hand belongs to.
-        """
-        return cls(participant=participant)
-
-    def __str__(self) -> str:
-        faces = " ".join(str(card) for card in self.cards)
-        return f"[{faces}] {self.values.eligible_values}"
-
-    def __repr__(self) -> str:
-        return f"Hand(player='{self.participant}')"
-
-    def __len__(self) -> int:
-        return len(self.cards)
-
-    def __getitem__(self, position: int) -> deck_.Card:
-        return self.cards[position]
-
-    @property
-    def values(self) -> deck_.Values:
-        """
-        The set-value of the hand accounting for Aces.
-        """
-        if self.cards:
-            return sum(card.values for card in self.cards)  # type: ignore
-        return deck_.Values({0})
-
-    @property
-    def blackjack(self) -> bool:
-        """
-        Whether the hand is a blackjack (21 with two cards).
-        """
-        return len(self) == 2 and max(self.values.eligible_values) == 21  # noqa: PLR2004
-
-    @property
-    def bust(self) -> bool:
-        """
-        Whether the hand is a bust (over 21).
-        """
-        return min(self.values) > 21  # noqa: PLR2004
-
-    def hit(self, deck: deck_.Deck, _key: str | None = None) -> None:
-        """
-        Take a card from the deck and add it to the hand.
-        """
-        self.cards.append(deck.take_card(_key))
-
-    def deal(self, deck: deck_.Deck, _keys: list[str] | None = None) -> None:
-        """
-        Deal two cards to the hand from the deck.
-        """
-        assert len(self) == 0, "This hand has already been dealt to"  # noqa: S101
-        if _keys:
-            assert len(_keys) == 2, "Can only deal two cards"  # noqa: S101,PLR2004
-            [self.hit(deck, key) for key in _keys]
-        else:
-            self.hit(deck), self.hit(deck)
-
-    def show_cards(self) -> None:
-        """
-        Print the cards in the hand to the terminal in a human-readable way.
-        """
-        print(f"{self.participant.name}'s hand:    {self}")
-
-
-class DealerHand(Hand):
-    """
-    A class to represent the House dealer in Blackjack. Inherits Hand
+    Outcomes for the player in a game of Blackjack.
     """
 
-    participant: Dealer
-
-    def __str__(self):
-        return self.masked_cards if self.playing else super().__str__()
-
-    @property
-    def masked_cards(self) -> str:
-        """
-        Return the cards in the hand, with the first masked.
-        """
-        return f"[{self.cards[0]} ??] [{self.cards[0].values}]\n"
-
-
-class PlayerHand(Hand):
-    """
-    A player's hand(s) in Blackjack.
-    """
-
-    participant: Player
-    bet: int
-    outcome: PlayerOutcome
-    from_split: bool
-
-    def __init__(self, player: Player, bet: int):
-        # I think this violates the Liskov substitution principle
-        super().__init__(participant=player)
-
-        self.bet = bet
-        self.from_split = False
-
-    def get_options(self, game: blackjack.Game) -> list[PlayerOption]:
-        """
-        Options to give the player when playing their hand.
-
-        :return: The list of the options to give.
-        """
-        if self.bust:
-            return []
-        if self.blackjack:
-            if game.dealer.hand.cards[0].rank == 1:
-                return [
-                    PlayerOption.TAKE_INSURANCE,
-                    PlayerOption.STAND,
-                    PlayerOption.HIT,
-                    PlayerOption.DOUBLE_DOWN,
-                ]
-            return []
-        if len(self) == 2 and self.participant.money > self.bet:  # noqa: PLR2004
-            if self[0].rank == self[1].rank:
-                return [
-                    PlayerOption.STAND,
-                    PlayerOption.HIT,
-                    PlayerOption.DOUBLE_DOWN,
-                    PlayerOption.SPLIT,
-                ]
-            return [
-                PlayerOption.STAND,
-                PlayerOption.HIT,
-                PlayerOption.DOUBLE_DOWN,
-            ]
-        return [PlayerOption.STAND, PlayerOption.HIT]
-
-    def play_hand(self, game: blackjack.Game) -> None:
-        """
-        Play the hand -- has three parts:
-
-        1. player choices
-        2. evaluate
-        3. feedback
-        """
-        # Split from Ace's should never come down here
-        if self.from_split:
-            assert self[0].rank != 1  # noqa: S101
-            assert self[1].rank != 1  # noqa: S101
-
-        while self.playing:
-            print(f"Playing hand {self!s}")
-
-            options = self.get_options(game)
-            if not options:
-                self.playing = False
-                break
-
-            player_options = (
-                ", ".join(option.readable for option in options) + "?"
-            )
-            decision = None
-            while not decision:
-                decision_key = input(f"{player_options} ")
-                try:
-                    decision = PlayerOption(decision_key)
-                    decision.action(self, game.deck)
-                except ValueError:
-                    print(f"Key {decision_key} not recognised, try again.")
-
-    def evaluate(self, game: blackjack.Game) -> None:
-        """
-        Evaluate the hand and update the outcome.
-        """
-        hand_value = max(
-            self.values if self.bust else self.values.eligible_values
-        )
-        dealer_value = max(
-            (value for value in game.dealer.hand.values if value <= 21),  # noqa: PLR2004
-            default=99,
-        )
-
-        if self.bust:
-            self.outcome = PlayerOutcome.LOSE
-        elif game.dealer.hand.blackjack:
-            if self.blackjack:
-                self.outcome = PlayerOutcome.DRAW
-            else:
-                # Assuming that dealer blackjack beats player 21
-                print("Dealer has blackjack")
-                self.outcome = PlayerOutcome.LOSE
-        elif game.dealer.hand.bust:
-            self.outcome = PlayerOutcome.WIN
-        elif hand_value < dealer_value:
-            self.outcome = PlayerOutcome.LOSE
-        elif hand_value == dealer_value:
-            self.outcome = PlayerOutcome.DRAW
-        elif hand_value > dealer_value:
-            self.outcome = PlayerOutcome.WIN
-
-        self.show_cards()
-        print(f"Outcome: {self.outcome.value}")
-
-    def split(self, deck: deck_.Deck) -> None:
-        """
-        Split the hand into two hands.
-        """
-        # fmt: off
-        assert len(self) == 2, f"Can't split a hand with {len(self)} cards"  # noqa: S101,PLR2004
-        assert (self[0].rank == self[1].rank), f"Can't split a hand with cards {self[0]} and {self[1]}"  # noqa: S101
-        # fmt: on
-
-        new_hand = self.participant.add_hand(bet=self.bet)
-        new_hand.cards.append(self.cards.pop(1))
-        new_hand.from_split = True
-        self.hit(deck), new_hand.hit(deck)
-
-        if self[0].rank == 1:
-            # Splitting Ace's only gets one card each
-            self.playing = False
-            new_hand.playing = False
+    WIN = "win"
+    LOSE = "lose"
+    DRAW = "draw"
 
 
 class PlayerOption(enum.Enum):
@@ -275,74 +46,192 @@ class PlayerOption(enum.Enum):
 
         return f"[{self.value}] {pretty_name}"
 
-    def action(self, player_hand: PlayerHand, deck: deck_.Deck) -> None:
+
+class Hand(abc.ABC):
+    """
+    A hand, which holds cards.
+    """
+
+    cards: list[deck_.Card]
+    bet: int | None
+    playing: bool = True
+
+    def __init__(self, bet: int | None):
+        self.bet = bet
+        self.cards = []
+
+    def __str__(self) -> str:
+        return self.show()
+
+    def __len__(self) -> int:
+        return len(self.cards)
+
+    def __getitem__(self, position: int) -> deck_.Card:
+        return self.cards[position]
+
+    @property
+    def values(self) -> deck_.Values:
+        """
+        The set-value of the hand accounting for Aces.
+        """
+        if self.cards:
+            return sum(card.values for card in self.cards)  # type: ignore
+        return deck_.Values({0})
+
+    @property
+    def blackjack(self) -> bool:
+        """
+        Whether the hand is a blackjack.
+        """
+        return (
+            len(self) == constants.BLACKJACK_CARDS
+            and max(self.values.eligible_values) == constants.BLACKJACK
+        )
+
+    @property
+    def bust(self) -> bool:
+        """
+        Whether the hand is a bust.
+        """
+        return min(self.values) > constants.BLACKJACK
+
+    def hit(self, deck: deck_.Deck, _key: str | None = None) -> None:
+        """
+        Take a card from the deck and add it to the hand.
+        """
+        self.cards.append(deck.take_card(_key))
+
+    def deal(self, deck: deck_.Deck, _keys: list[str] | None = None) -> None:
+        """
+        Deal two cards to the hand from the deck.
+        """
+        if len(self) != 0:
+            raise ValueError("Hand already has cards")
+
+        if _keys:
+            [self.hit(deck, key) for key in _keys]
+        else:
+            self.hit(deck), self.hit(deck)
+
+    def show(self, masked: bool = False) -> str:
+        """
+        Show the cards in the hand.
+
+        :param masked: Whether to show the first card masked.
+        """
+        if masked:
+            return f"[{self.cards[0].face} ??] [{self.cards[0].values}]\n"
+
+        faces = " ".join(card.face for card in self.cards)
+        return f"[{faces}] {self.values.eligible_values}"
+
+
+class PlayerHand(Hand):
+    """
+    A player's hand(s) in Blackjack.
+    """
+
+    outcome: PlayerOutcome
+    from_split: bool = False
+
+    def play_hand(self, game: blackjack.Game, player: Player) -> None:
+        """
+        Play the hand -- has three parts:
+
+        1. player choices
+        2. evaluate
+        3. feedback
+        """
+
+        while self.playing:
+            print(f"\nPlaying hand {self.show()!s}")
+
+            options = get_options(player, self, game)
+            if not options:
+                self.playing = False
+                break
+
+            player_options = (
+                ", ".join(option.readable for option in options) + "?"
+            )
+            decision = None
+            while not decision:
+                decision_key = input(f"{player_options} ")
+                try:
+                    decision = PlayerOption(decision_key)
+                    self.action(decision, player, game.deck)
+                except ValueError:
+                    print(f"Key {decision_key} not recognised, try again.")
+
+    def action(
+        self,
+        option: PlayerOption,
+        player: Player,
+        deck: deck_.Deck,
+    ) -> None:
         """
         Resolve the actions on the player given the option.
 
-        :param player_hand: The player's hand to resolve the action on.
+        :param option: The option the player has chosen.
+        :param player: The player making the choice.
         :param deck: The deck to draw from.
         """
-        match self:
+        match option:
             case PlayerOption.TAKE_INSURANCE:
                 # TODO: Update their bet and money
-                player_hand.playing = False
+                self.playing = False
             case PlayerOption.HIT:
-                player_hand.hit(deck)
+                self.hit(deck)
             case PlayerOption.STAND:
-                player_hand.playing = False
+                self.playing = False
             case PlayerOption.DOUBLE_DOWN:
-                player_hand.hit(deck)
-                player_hand.playing = False
+                self.hit(deck)
+                self.playing = False
             case PlayerOption.SPLIT:
-                player_hand.split(deck)
+                self.split(deck, player)
+
+    def split(self, deck: deck_.Deck, player: Player) -> None:
+        """
+        Split the hand into two hands.
+        """
+        # fmt: off
+        assert len(self) == 2, f"Can't split a hand with {len(self)} cards"  # noqa: S101,PLR2004
+        assert (self[0].rank == self[1].rank), f"Can't split a hand with cards {self[0]} and {self[1]}"  # noqa: S101
+        # fmt: on
+
+        new_hand = player.add_hand(bet=self.bet)
+        new_hand.cards.append(self.cards.pop(1))
+        new_hand.from_split = True
+        self.hit(deck), new_hand.hit(deck)
+
+        if self[0].rank == 1:
+            # Splitting Ace's only gets one card each
+            self.playing = False
+            new_hand.playing = False
 
 
-class PlayerOutcome(enum.Enum):
+class Dealer:
     """
-    Outcomes for the player in a game of Blackjack.
-    """
-
-    WIN = "win"
-    LOSE = "lose"
-    DRAW = "draw"
-
-
-class Participant(abc.ABC):
-    """
-    A participant in a game of Blackjack.
+    The dealer in a game of Blackjack.
     """
 
     name: str
+    hand: Hand
 
-    def __init__(self, name: str):
-        """
-        Instantiate a participant in a game of Blackjack.
-
-        :param name: The name of the participant.
-        """
-        self.name = name
+    def __init__(self):
+        self.name = "Dealer"
+        self.hand = Hand(bet=None)
 
     def __str__(self) -> str:
         return self.name
 
 
-class Dealer(Participant):
-    """
-    The dealer in a game of Blackjack.
-    """
-
-    hand: DealerHand
-
-    def __init__(self):
-        super().__init__(name="Dealer")
-        self.hand = DealerHand.from_participant(self)
-
-
-class Player(Participant):
+class Player:
     """
     A player in a game of Blackjack.
     """
 
+    name: str
     hands: list[PlayerHand]
     money: float
     insurance: float = 0  # TODO: need to include insurance somewhere
@@ -360,13 +249,15 @@ class Player(Participant):
         :param name: The name of the player.
         :param money: The amount of money the player has.
         """
-        # I think this violates the Liskov substitution principle
-        super().__init__(name=name or f"Player_{1 + len(game.players)}")
         self.hands = []
         self.money = money
+        self.name = name or f"Player_{1 + len(game.players)}"
 
     def __len__(self):
         return len(self.hands)
+
+    def __str__(self) -> str:
+        return self.name
 
     def __getitem__(self, position):
         return self.hands[position]
@@ -377,7 +268,7 @@ class Player(Participant):
         """
         # TODO: Bet should be a player attribute so that additional hands' bets
         #       can be inferred from the previous hand
-        new_hand = PlayerHand(player=self, bet=bet)
+        new_hand = PlayerHand(bet=bet)
         self.hands.append(new_hand)
 
         return new_hand
@@ -410,6 +301,41 @@ class Player(Participant):
         s = "s" if len(self) != 1 else ""
         description = f"{self.name} has £{self.money} with hand{s}:"
         for hand in self.hands:
-            description += f"\n    {hand}  stake: £{hand.bet}"
+            description += f"\n    {hand.show()}  stake: £{hand.bet}"
 
-        return description + "\n"
+        return description
+
+
+def get_options(
+    player: Player, hand: Hand, game: blackjack.Game
+) -> list[PlayerOption]:
+    """
+    Options to give the player when playing their hand.
+
+    :return: The list of the options to give.
+    """
+    if hand.bust:
+        return []
+    if hand.blackjack:
+        if game.dealer.hand.cards[0].rank == 1:
+            return [
+                PlayerOption.TAKE_INSURANCE,
+                PlayerOption.STAND,
+                PlayerOption.HIT,
+                PlayerOption.DOUBLE_DOWN,
+            ]
+        return []
+    if len(hand) == 2 and player.money > hand.bet:  # noqa: PLR2004
+        if hand[0].rank == hand[1].rank:
+            return [
+                PlayerOption.STAND,
+                PlayerOption.HIT,
+                PlayerOption.DOUBLE_DOWN,
+                PlayerOption.SPLIT,
+            ]
+        return [
+            PlayerOption.STAND,
+            PlayerOption.HIT,
+            PlayerOption.DOUBLE_DOWN,
+        ]
+    return [PlayerOption.STAND, PlayerOption.HIT]

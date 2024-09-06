@@ -10,6 +10,8 @@ import itertools
 
 import playing_cards
 
+from blackjack import constants
+
 
 @functools.total_ordering
 class Values:
@@ -32,7 +34,7 @@ class Values:
         )
 
     def __str__(self):
-        return str(self._values)
+        return str(self._values) if self._values else "BUST!"
 
     def __repr__(self):
         return f"Value(value={self._values})"
@@ -69,7 +71,9 @@ class Values:
         """
         The eligible values for winning.
         """
-        return Values({value for value in self._values if value <= 21})  # noqa: PLR2004
+        return Values(
+            {value for value in self._values if value <= constants.BLACKJACK}
+        )
 
 
 @dataclasses.dataclass

@@ -6,6 +6,7 @@
 - Find out whether dealer blackjack beats player blackjack
 - Find out whether a dealer blackjack beats a player 21
 - Find out whether a player blackjack beats a dealer 21
+- Split Aces should only get a single card each
 - Include insurance for when dealer starts with A
 - Add side bets!
 
