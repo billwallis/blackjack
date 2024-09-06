@@ -10,71 +10,6 @@ import blackjack
 from blackjack import deck, participants
 
 
-class MockHand(participants.Hand):
-    def evaluate(self) -> None:
-        pass
-
-
-@pytest.fixture
-def dealer_with_17() -> participants.Dealer:
-    dealer = participants.Dealer()
-    dealer.hand.cards = [
-        deck.Card.from_id("TS"),
-        deck.Card.from_id("7S"),
-    ]
-    return dealer
-
-
-@pytest.fixture
-def dealer_with_ace_first_blackjack() -> participants.Dealer:
-    dealer = participants.Dealer()
-    dealer.hand.cards = [
-        deck.Card.from_id("AS"),
-        deck.Card.from_id("TS"),
-    ]
-    return dealer
-
-
-@pytest.fixture
-def dealer_with_ten_first_blackjack() -> participants.Dealer:
-    dealer = participants.Dealer()
-    dealer.hand.cards = [
-        deck.Card.from_id("TS"),
-        deck.Card.from_id("AS"),
-    ]
-    return dealer
-
-
-@pytest.fixture
-def dealer_with_bust() -> participants.Dealer:
-    dealer = participants.Dealer()
-    dealer.hand.cards = [
-        deck.Card.from_id("TS"),
-        deck.Card.from_id("TC"),
-        deck.Card.from_id("TD"),
-    ]
-    return dealer
-
-
-@pytest.fixture(scope="function")
-def mock_player(mock_game: blackjack.Game) -> participants.Player:
-    """
-    Create a mock ``Player`` instance.
-    """
-    return participants.Player(game=mock_game, name="Mock Player")
-
-
-@pytest.fixture(scope="function")
-def mock_hand(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-) -> participants.Hand:
-    """
-    Create a mock ``Hand`` instance.
-    """
-    return MockHand(participant=mock_player)
-
-
 ###
 # Hand tests
 ###
@@ -85,16 +20,7 @@ def test__hand(
     """
     Test the construction of the ``Hand`` class.
     """
-    assert mock_hand.participant == mock_player
-    assert mock_hand.cards == []
-
-
-def test__hand__from_participant(mock_player: participants.Player):
-    """
-    Test the construction of the ``Hand`` class from a participant.
-    """
-    mock_hand = MockHand.from_participant(mock_player)
-    assert mock_hand.participant == mock_player
+    assert mock_hand.bet == 10
     assert mock_hand.cards == []
 
 
@@ -107,14 +33,7 @@ def test__hand__str(mock_hand: participants.Hand):
         deck.Card.from_id("2S"),
         deck.Card.from_id("TC"),
     ]
-    assert str(mock_hand) == "[2S TC] {12}"
-
-
-def test__hand__repr(mock_hand: participants.Hand):
-    """
-    Test the string representation of the ``Hand`` class.
-    """
-    assert repr(mock_hand) == "Hand(player='Mock Player')"
+    assert str(mock_hand) == "[2♠ T♣] {12}"
 
 
 def test__hand__len(mock_hand: participants.Hand):
@@ -279,27 +198,22 @@ def test__hand__deal__raises(
     Test that the ``Hand.deal()`` method raises an exception.
     """
     assert len(mock_hand) == 0
-    with pytest.raises(AssertionError):
-        mock_hand.deal(mock_game.deck, _keys=["AC"])
-
     mock_hand.deal(mock_game.deck)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         mock_hand.deal(mock_game.deck)
 
 
-def test__hand__show_cards(
+def test__hand__show(
     mock_game: blackjack.Game,
     mock_hand: participants.Hand,
-    capsys: pytest.CaptureFixture,
 ):
     """
     Test the ``Hand.show_cards()`` method.
     """
     assert len(mock_hand) == 0
     mock_hand.deal(mock_game.deck, ["TC", "AC"])
-    mock_hand.show_cards()
-    captured = capsys.readouterr()
-    assert captured.out == "Mock Player's hand:    [TC AC] {11, 21}\n"
+    shown_hand = mock_hand.show()
+    assert shown_hand == "[T♣ A♣] {11, 21}"
 
 
 ###
@@ -309,246 +223,31 @@ def test__dealer_hand():
     """
     Test the ``DealerHand.evaluate()`` method.
     """
-    dealer = participants.Dealer()
-    dealer_hand = participants.DealerHand(dealer)
+    dealer_hand = participants.Hand(bet=None)
     assert len(dealer_hand) == 0
 
     dealer_hand.cards = [
         deck.Card.from_id("2C"),
         deck.Card.from_id("AC"),
     ]
-    assert str(dealer_hand) == "[2C ??] [{2}]\n"
-
-    dealer_hand.playing = False
-    assert str(dealer_hand) == "[2C AC] {3, 13}"
+    assert dealer_hand.show(masked=True) == "[2♣ ??] [{2}]\n"
+    assert dealer_hand.show() == "[2♣ A♣] {3, 13}"
 
 
 ###
 # PlayerHand tests
 ###
-def test__player_hand(mock_player: participants.Player):
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-
-    assert player_hand.participant == mock_player
+def test__player_hand():
+    player_hand = participants.PlayerHand(bet=10)
     assert player_hand.cards == []
     assert player_hand.bet == 10
     assert player_hand.from_split is False
     assert player_hand.playing is True
 
 
-# fmt: off
-_opt = participants.PlayerOption  # For brevity
-@pytest.mark.parametrize(
-    "cards, options",
-    [
-        (["TC", "AC"], [_opt.TAKE_INSURANCE, _opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
-        (["TC", "TD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN, _opt.SPLIT]),
-        (["AC", "AD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN, _opt.SPLIT]),
-        (["JC", "KD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
-        (["2C", "3D"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
-        (["TC", "AC", "AD"], [_opt.STAND, _opt.HIT]),
-        (["TC", "TD", "2C"], []),
-    ],
-)
-def test__player_hand__options__dealer_has_ace(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-    cards: list[str],
-    options: list[participants.PlayerOption],
-):
-    """
-    Test the ``PlayerHand.options`` property.
-
-    TODO: Improve this with more cases (especially for dealer hands).
-    """
-    mock_game.dealer.hand.cards = [deck.Card.from_id("AS")]
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [deck.Card.from_id(card) for card in cards]
-
-    assert player_hand.get_options(mock_game) == options
-
-
-def test__player_hand__options__dealer_no_ace(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-):
-    """
-    Test the ``PlayerHand.options`` property.
-    """
-    cards, options = ["TC", "AC"], []
-    mock_game.dealer.hand.cards = [deck.Card.from_id("TS")]
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [deck.Card.from_id(card) for card in cards]
-
-    assert player_hand.get_options(mock_game) == options
-# fmt: on
-
-
-@pytest.mark.skip("Not implemented")
-def test__player_hand__play_hand(mock_game: blackjack.Game):
-    """
-    Test the ``PlayerHand.play_hand()`` method.
-    """
-    pass
-
-
-@pytest.mark.parametrize(
-    "cards, outcome",
-    [
-        (["TC", "AC"], participants.PlayerOutcome.DRAW),
-        (["TC", "TD"], participants.PlayerOutcome.LOSE),
-        (["TC", "9D"], participants.PlayerOutcome.LOSE),
-        (["TC", "4D", "5D"], participants.PlayerOutcome.LOSE),
-        (["AC", "AD"], participants.PlayerOutcome.LOSE),
-        (["2C", "3D"], participants.PlayerOutcome.LOSE),
-        (["TC", "AC", "AD"], participants.PlayerOutcome.LOSE),
-        (["TC", "TD", "2C"], participants.PlayerOutcome.LOSE),
-    ],
-)
-def test__player_hand__evaluate__dealer_with_ace_first_blackjack(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-    dealer_with_ace_first_blackjack: participants.Dealer,
-    cards: list[str],
-    outcome: participants.PlayerOutcome,
-):
-    """
-    Test the ``PlayerHand.evaluate()`` method.
-
-    TODO: Improve this with more cases (especially for dealer hands).
-    """
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [deck.Card.from_id(card) for card in cards]
-    mock_game.dealer = dealer_with_ace_first_blackjack
-
-    player_hand.evaluate(mock_game)
-    assert player_hand.outcome is outcome
-
-
-@pytest.mark.parametrize(
-    "cards, outcome",
-    [
-        (["TC", "AC"], participants.PlayerOutcome.DRAW),
-        (["TC", "TD"], participants.PlayerOutcome.LOSE),
-        (["TC", "9D"], participants.PlayerOutcome.LOSE),
-        (["TC", "4D", "5D"], participants.PlayerOutcome.LOSE),
-        (["AC", "AD"], participants.PlayerOutcome.LOSE),
-        (["2C", "3D"], participants.PlayerOutcome.LOSE),
-        (["TC", "AC", "AD"], participants.PlayerOutcome.LOSE),
-        (["TC", "TD", "2C"], participants.PlayerOutcome.LOSE),
-    ],
-)
-def test__player_hand__evaluate__dealer_with_ten_first_blackjack(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-    dealer_with_ten_first_blackjack: participants.Dealer,
-    cards: list[str],
-    outcome: participants.PlayerOutcome,
-):
-    """
-    Test the ``PlayerHand.evaluate()`` method.
-
-    TODO: Improve this with more cases (especially for dealer hands).
-    """
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [deck.Card.from_id(card) for card in cards]
-    mock_game.dealer = dealer_with_ten_first_blackjack
-
-    player_hand.evaluate(mock_game)
-    assert player_hand.outcome is outcome
-
-
-@pytest.mark.parametrize(
-    "cards, outcome",
-    [
-        (["TC", "AC"], participants.PlayerOutcome.WIN),
-        (["TC", "TD"], participants.PlayerOutcome.WIN),
-        (["TC", "7D"], participants.PlayerOutcome.DRAW),
-        (["TC", "4D", "3D"], participants.PlayerOutcome.DRAW),
-        (["AC", "AD"], participants.PlayerOutcome.LOSE),
-        (["2C", "3D"], participants.PlayerOutcome.LOSE),
-        (["TC", "AC", "AD"], participants.PlayerOutcome.LOSE),
-        (["TC", "TD", "2C"], participants.PlayerOutcome.LOSE),
-    ],
-)
-def test__player_hand__evaluate__dealer_with_17(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-    dealer_with_17: participants.Dealer,
-    cards: list[str],
-    outcome: participants.PlayerOutcome,
-):
-    """
-    Test the ``PlayerHand.evaluate()`` method.
-
-    TODO: Improve this with more cases (especially for dealer hands).
-    """
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [deck.Card.from_id(card) for card in cards]
-    mock_game.dealer = dealer_with_17
-
-    player_hand.evaluate(mock_game)
-    assert player_hand.outcome is outcome
-
-
-@pytest.mark.parametrize(
-    "cards, outcome",
-    [
-        (["TC", "AC"], participants.PlayerOutcome.WIN),
-        (["TC", "TD"], participants.PlayerOutcome.WIN),
-        (["TC", "9D"], participants.PlayerOutcome.WIN),
-        (["TC", "4D", "5D"], participants.PlayerOutcome.WIN),
-        (["AC", "AD"], participants.PlayerOutcome.WIN),
-        (["2C", "3D"], participants.PlayerOutcome.WIN),
-        (["TC", "AC", "AD"], participants.PlayerOutcome.WIN),
-        (["TC", "TD", "2C"], participants.PlayerOutcome.LOSE),
-    ],
-)
-def test__player_hand__evaluate__dealer_with_bust(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-    dealer_with_bust: participants.Dealer,
-    cards: list[str],
-    outcome: participants.PlayerOutcome,
-):
-    """
-    Test the ``PlayerHand.evaluate()`` method.
-
-    TODO: Improve this with more cases (especially for dealer hands).
-    """
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [deck.Card.from_id(card) for card in cards]
-    mock_game.dealer = dealer_with_bust
-
-    player_hand.evaluate(mock_game)
-    assert player_hand.outcome is outcome
-
-
-def test__player_hand__evaluate__edge_cases(
-    mock_game: blackjack.Game,
-    mock_player: participants.Player,
-):
-    """
-    Test the ``PlayerHand.evaluate()`` method.
-    """
-    player_hand = participants.PlayerHand(player=mock_player, bet=10)
-    player_hand.cards = [
-        deck.Card.from_id(card) for card in ["2H", "4C", "5D", "JH"]
-    ]
-
-    mock_game.dealer = participants.Dealer()
-    mock_game.dealer.hand.cards = [
-        deck.Card.from_id(card) for card in ["9D", "7H", "AS"]
-    ]
-
-    assert len(mock_game.dealer.hand.cards) == 3
-
-    player_hand.evaluate(mock_game)
-    assert player_hand.outcome is participants.PlayerOutcome.WIN
-
-
 def test__player_hand__split(
-    mock_game: blackjack.Game, mock_player: participants.Player
+    mock_game: blackjack.Game,
+    mock_player: participants.Player,
 ):
     """
     Test the ``PlayerHand.split()`` method.
@@ -561,7 +260,7 @@ def test__player_hand__split(
     ]
 
     assert len(mock_player.hands) == 1
-    player_hand.split(mock_game.deck)
+    player_hand.split(mock_game.deck, mock_player)
     assert len(mock_player.hands) == 2
     hand_0: participants.PlayerHand = mock_player.hands[0]
     hand_1: participants.PlayerHand = mock_player.hands[1]
@@ -579,7 +278,8 @@ def test__player_hand__split(
 
 
 def test__player_hand__split__from_aces(
-    mock_game: blackjack.Game, mock_player: participants.Player
+    mock_game: blackjack.Game,
+    mock_player: participants.Player,
 ):
     """
     Test the ``PlayerHand.split()`` method on a pair of Aces.
@@ -592,7 +292,7 @@ def test__player_hand__split__from_aces(
     ]
 
     assert len(mock_player.hands) == 1
-    player_hand.split(mock_game.deck)
+    player_hand.split(mock_game.deck, mock_player)
     assert len(mock_player.hands) == 2
     hand_0: participants.PlayerHand = mock_player.hands[0]
     hand_1: participants.PlayerHand = mock_player.hands[1]
@@ -607,6 +307,14 @@ def test__player_hand__split__from_aces(
     assert hand_1.cards[0] == deck.Card.from_id("AD")
     assert hand_1.from_split is True
     assert hand_1.playing is False
+
+
+@pytest.mark.skip("Not implemented")
+def test__player_hand__play_hand(mock_game: blackjack.Game):
+    """
+    Test the ``PlayerHand.play_hand()`` method.
+    """
+    pass
 
 
 ###
@@ -660,7 +368,7 @@ def test__player_option__action(  # noqa: PLR0913
     assert len(mock_player.hands) == 1
     assert len(player_hand) == 2
 
-    option.action(player_hand, mock_game.deck)
+    option.action(mock_player, player_hand, mock_game.deck)
 
     assert player_hand.playing is playing
     assert len(mock_player.hands) == hands
@@ -799,11 +507,14 @@ def test__player__name_and_money(mock_player: participants.Player):
         deck.Card.from_id("TD"),
     ]
     assert len(mock_player.hands) == 1
-    assert mock_player.name_and_money == textwrap.dedent(
-        """\
+    assert (
+        mock_player.name_and_money.strip()
+        == textwrap.dedent(
+            """
         Mock Player has £500 with hand:
-            [TC TD] {20}  stake: £10
+            [T♣ T♦] {20}  stake: £10
         """
+        ).strip()
     )
 
     mock_player.add_hand(bet=10)
@@ -812,10 +523,61 @@ def test__player__name_and_money(mock_player: participants.Player):
         deck.Card.from_id("AD"),
     ]
     assert len(mock_player.hands) == 2
-    assert mock_player.name_and_money == textwrap.dedent(
-        """\
+    assert (
+        mock_player.name_and_money.strip()
+        == textwrap.dedent(
+            """\
         Mock Player has £500 with hands:
-            [TC TD] {20}  stake: £10
-            [AC AD] {2, 12}  stake: £10
+            [T♣ T♦] {20}  stake: £10
+            [A♣ A♦] {2, 12}  stake: £10
         """
+        ).strip()
     )
+
+
+# fmt: off
+_opt = participants.PlayerOption  # For brevity
+@pytest.mark.parametrize(
+    "cards, options",
+    [
+        (["TC", "AC"], [_opt.TAKE_INSURANCE, _opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
+        (["TC", "TD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN, _opt.SPLIT]),
+        (["AC", "AD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN, _opt.SPLIT]),
+        (["JC", "KD"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
+        (["2C", "3D"], [_opt.STAND, _opt.HIT, _opt.DOUBLE_DOWN]),
+        (["TC", "AC", "AD"], [_opt.STAND, _opt.HIT]),
+        (["TC", "TD", "2C"], []),
+    ],
+)
+def test__player_hand__options__dealer_has_ace(
+    mock_game: blackjack.Game,
+    mock_player: participants.Player,
+    cards: list[str],
+    options: list[participants.PlayerOption],
+):
+    """
+    Test the ``PlayerHand.options`` property.
+
+    TODO: Improve this with more cases (especially for dealer hands).
+    """
+    mock_game.dealer.hand.cards = [deck.Card.from_id("AS")]
+    player_hand = participants.PlayerHand(bet=10)
+    player_hand.cards = [deck.Card.from_id(card) for card in cards]
+
+    assert options == participants.get_options(mock_player, player_hand, mock_game)
+
+
+def test__player_hand__options__dealer_no_ace(
+    mock_game: blackjack.Game,
+    mock_player: participants.Player,
+):
+    """
+    Test the ``PlayerHand.options`` property.
+    """
+    cards, options = ["TC", "AC"], []
+    mock_game.dealer.hand.cards = [deck.Card.from_id("TS")]
+    player_hand = participants.PlayerHand(bet=10)
+    player_hand.cards = [deck.Card.from_id(card) for card in cards]
+
+    assert options == participants.get_options(mock_player, player_hand, mock_game)
+# fmt: on

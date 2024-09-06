@@ -32,7 +32,7 @@ class Values:
         )
 
     def __str__(self):
-        return str(self._values)
+        return str(self._values) if self._values else "BUST!"
 
     def __repr__(self):
         return f"Value(value={self._values})"
