@@ -166,10 +166,6 @@ class PlayerHand(Hand):
         2. evaluate
         3. feedback
         """
-        # Split from Ace's should never come down here
-        if self.from_split:
-            assert self[0].rank != 1  # noqa: S101
-            assert self[1].rank != 1  # noqa: S101
 
         while self.playing:
             print(f"\nPlaying hand {self.show()!s}")
