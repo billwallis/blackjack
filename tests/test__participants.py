@@ -368,7 +368,7 @@ def test__player_option__action(  # noqa: PLR0913
     assert len(mock_player.hands) == 1
     assert len(player_hand) == 2
 
-    option.action(mock_player, player_hand, mock_game.deck)
+    player_hand.action(option, mock_player, mock_game.deck)
 
     assert player_hand.playing is playing
     assert len(mock_player.hands) == hands

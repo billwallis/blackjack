@@ -46,30 +46,6 @@ class PlayerOption(enum.Enum):
 
         return f"[{self.value}] {pretty_name}"
 
-    def action(
-        self, player: Player, hand: PlayerHand, deck: deck_.Deck
-    ) -> None:
-        """
-        Resolve the actions on the player given the option.
-
-        :param player: The player to resolve the action on.
-        :param hand: The player's hand to resolve the action on.
-        :param deck: The deck to draw from.
-        """
-        match self:
-            case PlayerOption.TAKE_INSURANCE:
-                # TODO: Update their bet and money
-                hand.playing = False
-            case PlayerOption.HIT:
-                hand.hit(deck)
-            case PlayerOption.STAND:
-                hand.playing = False
-            case PlayerOption.DOUBLE_DOWN:
-                hand.hit(deck)
-                hand.playing = False
-            case PlayerOption.SPLIT:
-                hand.split(deck, player)
-
 
 class Hand(abc.ABC):
     """
@@ -79,7 +55,6 @@ class Hand(abc.ABC):
     cards: list[deck_.Card]
     bet: int | None
     playing: bool = True
-    outcome: PlayerOutcome
 
     def __init__(self, bet: int | None):
         self.bet = bet
@@ -156,6 +131,7 @@ class PlayerHand(Hand):
     A player's hand(s) in Blackjack.
     """
 
+    outcome: PlayerOutcome
     from_split: bool = False
 
     def play_hand(self, game: blackjack.Game, player: Player) -> None:
@@ -183,9 +159,36 @@ class PlayerHand(Hand):
                 decision_key = input(f"{player_options} ")
                 try:
                     decision = PlayerOption(decision_key)
-                    decision.action(player, self, game.deck)
+                    self.action(decision, player, game.deck)
                 except ValueError:
                     print(f"Key {decision_key} not recognised, try again.")
+
+    def action(
+        self,
+        option: PlayerOption,
+        player: Player,
+        deck: deck_.Deck,
+    ) -> None:
+        """
+        Resolve the actions on the player given the option.
+
+        :param option: The option the player has chosen.
+        :param player: The player making the choice.
+        :param deck: The deck to draw from.
+        """
+        match option:
+            case PlayerOption.TAKE_INSURANCE:
+                # TODO: Update their bet and money
+                self.playing = False
+            case PlayerOption.HIT:
+                self.hit(deck)
+            case PlayerOption.STAND:
+                self.playing = False
+            case PlayerOption.DOUBLE_DOWN:
+                self.hit(deck)
+                self.playing = False
+            case PlayerOption.SPLIT:
+                self.split(deck, player)
 
     def split(self, deck: deck_.Deck, player: Player) -> None:
         """
