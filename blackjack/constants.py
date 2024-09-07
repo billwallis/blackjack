@@ -4,6 +4,7 @@ Constants for the blackjack game.
 
 BLACKJACK = 21
 BLACKJACK_CARD_COUNT = 2
+DOUBLE_DOWN_CARD_COUNT = 2
 DEALER_LOWER_LIMIT = 17
 
 

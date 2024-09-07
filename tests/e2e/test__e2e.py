@@ -13,21 +13,21 @@ from blackjack import participants
 pytestmark = pytest.mark.e2e
 
 
-def random_option(_) -> participants.PlayerOption:
+def random_option(_) -> str:
     """
     Return a random player option.
     """
-    return random.choice(list(participants.PlayerOption))  # noqa: S311
+    return random.choice(list(participants.PlayerOption)).value  # noqa: S311
 
 
-def test__end_to_end(monkeypatch: pytest.MonkeyPatch) -> None:
+def test__rounds_can_be_played(monkeypatch: pytest.MonkeyPatch) -> None:
     """
-    The game can be played to completion without any errors.
+    The rounds can be played to completion without any errors.
     """
     monkeypatch.setattr("builtins.input", random_option)
 
     for i in range(1000):
-        print(f"\n--- Game {i} ---\n")
+        print(f"\n--- Game {i + 1} ---\n")
         game = blackjack.Game(min_bet=10)
         game.standard_setup(number_of_players=3, number_of_decks=6)
         game.play_round()

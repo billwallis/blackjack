@@ -1,5 +1,5 @@
 """
-Test the ``blackjack.deck`` module.
+Tests for the ``blackjack.deck`` module.
 """
 
 import playing_cards

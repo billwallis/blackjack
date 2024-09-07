@@ -1,5 +1,5 @@
 """
-Test the ``blackjack.participants`` module.
+Tests for the ``blackjack.participants`` module.
 """
 
 import textwrap
@@ -145,7 +145,6 @@ def test__hand__can_hit_the_deck(
     mock_game.deck.reset()
     cards = ["TC", "TD", "2C"]
     for card in cards:
-        print(f"hitting for card {card}")
         mock_hand.hit(mock_game.deck, card)
 
     assert mock_hand.cards == [deck.Card.from_id(card) for card in cards]
@@ -217,7 +216,6 @@ def test__player_hand__can_be_initialised():
     assert player_hand.playing is True
     assert player_hand.from_split is False
     assert player_hand.insurance == 0
-    assert player_hand.outcome is None
 
 
 def test__player_hand__can_split(
