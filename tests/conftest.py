@@ -7,16 +7,19 @@ from blackjack import deck, participants
 @pytest.fixture
 def mock_game() -> blackjack.Game:
     """
-    Create a mock ``Game`` instance.
+    A game with six players and six decks.
     """
-    game_ = blackjack.Game()
-    game_.standard_setup(num_players=6, num_decks=6)
+    game_ = blackjack.Game(min_bet=10)
+    game_.standard_setup(number_of_players=6, number_of_decks=6)
 
     return game_
 
 
 @pytest.fixture
 def dealer_with_17() -> participants.Dealer:
+    """
+    A dealer with a hand value of 17 (10 of Spades and 7 of Spades).
+    """
     dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("TS"),
@@ -27,6 +30,9 @@ def dealer_with_17() -> participants.Dealer:
 
 @pytest.fixture
 def dealer_with_ace_first_blackjack() -> participants.Dealer:
+    """
+    A dealer with a hand value of 21 (Ace of Spades and 10 of Spades).
+    """
     dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("AS"),
@@ -37,6 +43,9 @@ def dealer_with_ace_first_blackjack() -> participants.Dealer:
 
 @pytest.fixture
 def dealer_with_ten_first_blackjack() -> participants.Dealer:
+    """
+    A dealer with a hand value of 21 (10 of Spades and Ace of Spades).
+    """
     dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("TS"),
@@ -47,6 +56,9 @@ def dealer_with_ten_first_blackjack() -> participants.Dealer:
 
 @pytest.fixture
 def dealer_with_bust() -> participants.Dealer:
+    """
+    A dealer with a bust hand (10 of Spades, 10 of Clubs, 2 of Diamonds).
+    """
     dealer = participants.Dealer()
     dealer.hand.cards = [
         deck.Card.from_id("TS"),
@@ -57,11 +69,11 @@ def dealer_with_bust() -> participants.Dealer:
 
 
 @pytest.fixture(scope="function")
-def mock_player(mock_game: blackjack.Game) -> participants.Player:
+def mock_player() -> participants.Player:
     """
-    Create a mock ``Player`` instance.
+    A player.
     """
-    return participants.Player(game=mock_game, name="Mock Player")
+    return participants.Player("Mock Player", 500)
 
 
 class MockHand(participants.Hand):
@@ -72,6 +84,6 @@ class MockHand(participants.Hand):
 @pytest.fixture(scope="function")
 def mock_hand() -> participants.Hand:
     """
-    Create a mock ``Hand`` instance.
+    A hand with a bet of 10.
     """
     return MockHand(bet=10)

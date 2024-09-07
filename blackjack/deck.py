@@ -17,6 +17,9 @@ from blackjack import constants
 class Values:
     """
     Values for a playing card.
+
+    Usually, a playing card's value is the same as its rank. However, an ace
+    can have a value of 1 and 11, and face cards have a value of 10.
     """
 
     _values: set[int]
@@ -39,32 +42,23 @@ class Values:
     def __repr__(self):
         return f"Value(value={self._values})"
 
-    def __eq__(self, other: set[int] | Values) -> bool:
+    def __eq__(self, other: Values) -> bool:
         if isinstance(other, Values):
             return self._values == other._values
-        if isinstance(other, set):
-            return self._values == other
-
         return NotImplemented
 
     def __lt__(self, other: Values) -> bool:
         return max(self._values) < max(other._values)
 
+    def __add__(self, other: int | Values) -> Values:
+        if not isinstance(other, int | Values):
+            return NotImplemented
+
+        other_: set[int] = {other} if isinstance(other, int) else other._values
+        return Values({sum(p) for p in itertools.product(self._values, other_)})
+
     def __iter__(self):
         yield from self._values
-
-    def __add__(self, other: int | Values) -> Values:
-        if isinstance(other, int | Values):
-            other_: set[int] = (
-                {other} if isinstance(other, int) else other._values
-            )
-            return Values(
-                {sum(p) for p in itertools.product(self._values, other_)}
-            )
-        return NotImplemented
-
-    def __radd__(self, other: int | Values) -> Values:
-        return self + other
 
     @property
     def eligible_values(self) -> Values:
@@ -101,6 +95,16 @@ class Card(playing_cards.Card):
 
     def __radd__(self, other: int | Card) -> Values:
         return self + other
+
+    @property
+    def face(self) -> str:
+        """
+        The face of the card.
+        """
+        face = super().face
+        if self.suit in {playing_cards.Suit.HEART, playing_cards.Suit.DIAMOND}:
+            return f"{constants.Colours.RED}{face}{constants.Colours.END}"
+        return f"{constants.Colours.BLUE}{face}{constants.Colours.END}"
 
 
 class Deck(playing_cards.Decks):

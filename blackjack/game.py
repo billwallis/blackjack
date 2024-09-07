@@ -1,4 +1,3 @@
-# sourcery skip: avoid-single-character-names-variables
 """
 Define the game.
 
@@ -11,53 +10,114 @@ from blackjack import constants, participants
 from blackjack import deck as deck_
 
 
+def play_hand(
+    player_hand: participants.PlayerHand,
+    game: Game,
+    player: participants.Player,
+) -> None:
+    """
+    Play the hand -- has three parts:
+
+    1. player choices
+    2. evaluate
+    3. feedback
+    """
+
+    while player_hand.playing:
+        print(f"\nPlaying hand {player_hand.show()!s}")
+
+        options = game.get_player_options(player, player_hand)
+        if not options:
+            player_hand.playing = False
+            break
+
+        player_options = ", ".join(option.readable for option in options) + "?"
+        decision = None
+        while not decision:
+            decision_key = input(f"{player_options} ")
+            try:
+                decision = participants.PlayerOption(decision_key)
+                action(player_hand, decision, player, game.deck)
+            except ValueError:
+                print(f"Key {decision_key} not recognised, try again.")
+
+
+def action(
+    player_hand: participants.PlayerHand,
+    option: participants.PlayerOption,
+    player: participants.Player,
+    deck: deck_.Deck,
+) -> None:
+    """
+    Resolve the actions on the player given the option.
+
+    :param player_hand: The hand the player is playing.
+    :param option: The option the player has chosen.
+    :param player: The player making the choice.
+    :param deck: The deck to draw from.
+    """
+    match option:
+        case participants.PlayerOption.TAKE_INSURANCE:
+            # TODO: Update their bet and money
+            player_hand.playing = False
+        case participants.PlayerOption.HIT:
+            player_hand.hit(deck)
+        case participants.PlayerOption.STAND:
+            player_hand.playing = False
+        case participants.PlayerOption.DOUBLE_DOWN:
+            player_hand.hit(deck)
+            player_hand.playing = False
+        case participants.PlayerOption.SPLIT:
+            player_hand.split(deck, player)
+
+
 class Game:
     """
     A class to control the Blackjack game.
     """
 
+    min_bet: int
+    round: int
     deck: deck_.Deck
     dealer: participants.Dealer
     players: list[participants.Player]
-    min_bet: int
-    round: int = 0
-    verbose: bool
 
-    def __init__(
-        self,
-        min_bet: int = 10,
-    ):
-        self.players = []
+    def __init__(self, min_bet: int):
         self.min_bet = min_bet
+        self.round = 0
+        self.players = []
 
     def __str__(self) -> str:
+        # sourcery skip: avoid-single-character-names-variables
         s = "" if len(self.players) == 1 else "s"
         return f"Game consisting of {len(self.players)} player{s}"
 
-    def standard_setup(self, num_players: int, num_decks: int) -> None:
+    def standard_setup(
+        self, number_of_players: int, number_of_decks: int
+    ) -> None:
         """
         Set up a standard game of Blackjack.
 
-        :param num_players: The number of players to add to the game.
-        :param num_decks: The number of decks to use in the game.
+        :param number_of_players: The number of players to add to the game.
+        :param number_of_decks: The number of 52-card decks to use in the game.
         """
-        self.add_deck(num_decks=num_decks)
+        self.add_deck(number_of_decks)
         self.add_dealer()
-        [self.add_player(f"Player_{i}") for i in range(num_players)]
+        [self.add_player(f"Player_{i}", 500) for i in range(number_of_players)]
 
-    def add_deck(self, num_decks: int) -> deck_.Deck:
+    def add_deck(self, number_of_decks: int) -> deck_.Deck:
         """
         Add a stack of deck to the game.
 
-        :param num_decks: The number of decks to add.
+        :param number_of_decks: The number of 52-card decks to add.
+
         :return: The stack of decks for the game.
         """
-        assert not hasattr(self, "deck"), "A deck already exists in this game"  # noqa: S101
+        if hasattr(self, "deck"):
+            raise AssertionError("A deck already exists in this game")
 
-        new_deck = deck_.Deck(num_decks)
-        self.deck = new_deck
-
-        return new_deck
+        self.deck = deck_.Deck(number_of_decks)
+        return self.deck
 
     def add_dealer(self) -> participants.Dealer:
         """
@@ -65,16 +125,13 @@ class Game:
 
         :return: The dealer for the game.
         """
-        assert not hasattr(  # noqa: S101
-            self, "dealer"
-        ), "A dealer already exists in this game"
+        if hasattr(self, "dealer"):
+            raise AssertionError("A dealer already exists in this game")
 
-        new_dealer = participants.Dealer()
-        self.dealer = new_dealer
+        self.dealer = participants.Dealer()
+        return self.dealer
 
-        return new_dealer
-
-    def add_player(self, name: str, money: int = 500) -> participants.Player:
+    def add_player(self, name: str, money: int) -> participants.Player:
         """
         Add a player to the game.
 
@@ -86,7 +143,7 @@ class Game:
         if name in [p.name for p in self.players]:
             raise ValueError(f"The name {name} is already taken")
 
-        new_player = participants.Player(game=self, name=name, money=money)
+        new_player = participants.Player(name, money)
         self.players.append(new_player)
 
         return new_player
@@ -101,14 +158,14 @@ class Game:
 
         # Place bets, then deal
         [player.add_hand(self.min_bet) for player in self.players]
-        [player[0].deal(self.deck) for player in self.players]
+        [player.hands[0].deal(self.deck) for player in self.players]
         self.dealer.hand.deal(self.deck)
 
         print(self.dealer, self.dealer.hand.show(masked=True), sep="\n")
         for player in self.players:
             print(player.name_and_money)
             for hand in player.hands:
-                hand.play_hand(self, player)
+                play_hand(hand, self, player)
 
         self.evaluate_dealer()
         print()
@@ -128,7 +185,9 @@ class Game:
         self.dealer.hand.playing = False
 
     def evaluate_player(
-        self, hand: participants.Hand, player: participants.Player
+        self,
+        hand: participants.Hand,
+        player: participants.Player,
     ) -> None:
         """
         Evaluate the hand and update the outcome.
@@ -165,4 +224,40 @@ class Game:
 
         print()
         print(player.name, hand.show())
-        print(f"Outcome: {hand.outcome.value}")
+        print(f"Outcome: {hand.outcome.formatted}")
+
+    def get_player_options(
+        self,
+        player: participants.Player,
+        hand: participants.Hand,
+    ) -> list[participants.PlayerOption]:
+        """
+        Options to give the player when playing their hand.
+
+        :return: The list of the options to give.
+        """
+        if hand.bust:
+            return []
+        if hand.blackjack:
+            if self.dealer.hand.cards[0].rank == 1:
+                return [
+                    participants.PlayerOption.TAKE_INSURANCE,
+                    participants.PlayerOption.STAND,
+                    participants.PlayerOption.HIT,
+                    participants.PlayerOption.DOUBLE_DOWN,
+                ]
+            return []
+        if len(hand) == 2 and player.money > hand.bet:  # noqa: PLR2004
+            if hand[0].rank == hand[1].rank:
+                return [
+                    participants.PlayerOption.STAND,
+                    participants.PlayerOption.HIT,
+                    participants.PlayerOption.DOUBLE_DOWN,
+                    participants.PlayerOption.SPLIT,
+                ]
+            return [
+                participants.PlayerOption.STAND,
+                participants.PlayerOption.HIT,
+                participants.PlayerOption.DOUBLE_DOWN,
+            ]
+        return [participants.PlayerOption.STAND, participants.PlayerOption.HIT]
