@@ -92,6 +92,16 @@ class Game:
 
         return new_player
 
+    def reset_round(self) -> None:
+        """
+        Reset the game for a new round.
+        """
+        self.round = 0
+        self.deck.reset()
+        self.dealer.hand.cards = []
+        for player in self.players:
+            player.hands = []
+
     def play_round(self) -> None:
         """
         Play a round of Blackjack.
@@ -130,3 +140,4 @@ class Game:
                 print()
                 print(player.name, hand.show())
                 print(f"Outcome: {outcome.formatted}")
+                rules.apply_outcome(player, outcome, hand.bet)

@@ -122,7 +122,9 @@ def test__player_hand_can_be_given_options(
     player_hand.cards = [deck.Card.from_id(card) for card in cards]
 
     assert options == rules.get_options_for_player_hand(
-        mock_player, player_hand, dealer_has_ace
+        mock_player,
+        player_hand,
+        dealer_has_ace,
     )
 
 
@@ -210,3 +212,27 @@ def test__player_hand_can_be_evaluated__edge_cases(
     player_hand.cards = [deck.Card.from_id(card) for card in player_cards]
 
     assert rules.get_hand_outcome(player_hand, dealer.hand) == outcome
+
+
+def test__player_hand_can_have_outcome_applied():
+    """
+    The player hand can have an outcome applied to it.
+    """
+    player = participants.Player("Player_1", 500)
+    player.add_hand(bet=10)
+    player_hand = player.hands[0]
+    player_hand.cards = [
+        deck.Card.from_id("TC"),
+        deck.Card.from_id("TD"),
+    ]
+    assert player.money == 500
+    assert player_hand.bet == 10
+
+    rules.apply_outcome(player, participants.HandOutcome.WIN, player_hand.bet)
+    assert player.money == 510
+
+    rules.apply_outcome(player, participants.HandOutcome.DRAW, player_hand.bet)
+    assert player.money == 510
+
+    rules.apply_outcome(player, participants.HandOutcome.LOSE, 100)
+    assert player.money == 410

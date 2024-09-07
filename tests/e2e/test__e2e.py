@@ -38,5 +38,6 @@ def test__package_can_be_invoked(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     The package can be invoked from the command line.
     """
+    # TODO: This mocks _every_ input, but some ask different questions
     monkeypatch.setattr("builtins.input", random_option)
     runpy.run_module("blackjack", run_name="__main__")

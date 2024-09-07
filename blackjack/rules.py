@@ -174,3 +174,21 @@ def get_hand_outcome(  # noqa: PLR0911
         return participants.HandOutcome.DRAW
 
     return participants.HandOutcome.LOSE
+
+
+def apply_outcome(
+    player: participants.Player,
+    outcome: participants.HandOutcome,
+    bet: int,
+) -> None:
+    """
+    Apply the outcome to the player's money.
+
+    :param player: The player to apply the outcome to.
+    :param outcome: The outcome of the hand.
+    :param bet: The bet placed on the hand.
+    """
+    if outcome == participants.HandOutcome.WIN:
+        player.money += bet
+    elif outcome == participants.HandOutcome.LOSE:
+        player.money -= bet
