@@ -13,7 +13,7 @@ from blackjack import constants
 from blackjack import deck as deck_
 
 
-class PlayerOutcome(enum.StrEnum):
+class HandOutcome(enum.StrEnum):
     """
     Outcomes for the player in a game of Blackjack.
     """
@@ -28,9 +28,9 @@ class PlayerOutcome(enum.StrEnum):
         Return a formatted version of the outcome.
         """
         outcome = {
-            PlayerOutcome.WIN: f"{constants.Colours.PASS}win",
-            PlayerOutcome.LOSE: f"{constants.Colours.FAIL}lose",
-            PlayerOutcome.DRAW: f"{constants.Colours.WARN}draw",
+            HandOutcome.WIN: f"{constants.Colours.PASS}win",
+            HandOutcome.LOSE: f"{constants.Colours.FAIL}lose",
+            HandOutcome.DRAW: f"{constants.Colours.WARN}draw",
         }[self]
         return constants.Colours.BOLD + outcome + constants.Colours.END
 
@@ -154,12 +154,10 @@ class PlayerHand(Hand):
 
     from_split: bool
     insurance: int  # TODO: need to include insurance somewhere
-    outcome: PlayerOutcome | None
 
     def __init__(self, bet: int, from_split: bool):
         self.from_split = from_split
         self.insurance = 0
-        self.outcome = None
         super().__init__(bet)
 
     def split(self, deck: deck_.Deck, player: Player) -> None:

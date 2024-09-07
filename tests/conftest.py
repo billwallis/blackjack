@@ -68,7 +68,7 @@ def dealer_with_bust() -> participants.Dealer:
     return dealer
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def mock_player() -> participants.Player:
     """
     A player.
@@ -76,14 +76,14 @@ def mock_player() -> participants.Player:
     return participants.Player("Mock Player", 500)
 
 
-class MockHand(participants.Hand):
-    def evaluate(self) -> None:
-        pass
-
-
-@pytest.fixture(scope="function")
+@pytest.fixture
 def mock_hand() -> participants.Hand:
     """
     A hand with a bet of 10.
     """
+
+    class MockHand(participants.Hand):
+        def evaluate(self) -> None:
+            pass  # pragma: no cover
+
     return MockHand(bet=10)
