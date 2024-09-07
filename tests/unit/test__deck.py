@@ -8,28 +8,28 @@ import pytest
 from blackjack import deck
 
 
-###
-# Value tests
-###
-def test__values():
+def test__values__can_be_initialised():
     """
-    Test the construction of the ``Values`` class.
+    Values can be initialised with a set of integers.
     """
     value = deck.Values({1, 11})
     assert value._values == {1, 11}
-
-
-def test__values__str():
-    """
-    Test the ``Values.__str__()`` and ``Values.__repr__()`` methods.
-    """
-    value = deck.Values({1, 11})
     assert str(value) == "{1, 11}"
     assert repr(value) == f"Value(value={value._values})"
 
 
+def test__values__can_be_compared_for_equality():
+    """
+    Values can be compared for equality.
+    """
+    value_1 = deck.Values({1})
+    value_2 = deck.Values({1})
+    assert value_1 == value_2
+    assert (value_1 == "one") is False
+
+
 @pytest.mark.parametrize(
-    "values_1, values_2, expected",
+    "set_1, set_2, expected",
     [
         ({1}, {2}, True),
         ({2}, {1}, False),
@@ -40,33 +40,24 @@ def test__values__str():
         ({1, 2, 3}, {4}, True),
     ],
 )
-def test__values__lt(values_1: set[int], values_2: set[int], expected: bool):
+def test__values__can_be_compared_as_a_total_order(
+    set_1: set[int],
+    set_2: set[int],
+    expected: bool,
+):
     """
-    Test the ``Values.__lt__()`` method.
+    Values can be compared as a total order.
     """
-    value_1 = deck.Values(values_1)
-    value_2 = deck.Values(values_2)
+    value_1 = deck.Values(set_1)
+    value_2 = deck.Values(set_2)
     assert (value_1 < value_2) is expected
-
-
-def test__values__eq():
-    """
-    Test the ``Values.__eq__()`` method.
-    """
-    value_1 = deck.Values({1})
-    value_2 = deck.Values({1})
-    assert value_1 == value_2
-
-
-def test__values__not_implemented():
-    """
-    Test that the ``Values.__eq__()`` method throws an exception.
-    """
-    assert (deck.Values({1}) == "one") is False
+    assert (value_1 <= value_2) is expected
+    assert (value_1 > value_2) is not expected
+    assert (value_1 >= value_2) is not expected
 
 
 @pytest.mark.parametrize(
-    "values_1, values_2, result",
+    "set_1, set_2, result",
     [
         ({1}, {2}, {3}),
         ({2}, {1}, {3}),
@@ -78,22 +69,25 @@ def test__values__not_implemented():
         ({1, 11}, {11, 21}, {12, 22, 32}),
     ],
 )
-def test__values__add(
-    values_1: set[int],
-    values_2: set[int],
+def test__values__can_be_added_together(
+    set_1: set[int],
+    set_2: set[int],
     result: set[int],
 ):
     """
-    Test the ``Values.__add__()`` method.
+    Values can be added together.
     """
-    value_1 = deck.Values(values_1)
-    value_2 = deck.Values(values_2)
-    assert value_1 + value_2 == result
+    value_1 = deck.Values(set_1)
+    value_2 = deck.Values(set_2)
+    expected = deck.Values(result)
+
+    assert value_1 + value_2 == expected
+    assert value_2 + value_1 == expected
 
 
-def test__values__add_raises():
+def test__values__cannot_be_added_to_non_numerics():
     """
-    Test the ``Values.__add__()`` method.
+    Values cannot be added to non-numerics.
     """
     with pytest.raises(TypeError):
         deck.Values({1}) + "1"  # type: ignore
@@ -109,16 +103,17 @@ def test__values__add_raises():
         ({12, 22, 32}, {12}),
     ],
 )
-def test__values__eligible_values(values: set[int], eligible_values: set[int]):
+def test__values__has_eligible_values(
+    values: set[int],
+    eligible_values: set[int],
+):
     """
-    Test the ``Values.eligible_values`` property.
+    The eligible values are the values that are lower than or equal to the
+    blackjack value.
     """
     assert deck.Values(values).eligible_values == deck.Values(eligible_values)
 
 
-###
-# Card tests
-###
 @pytest.mark.parametrize(
     "card, other, result",
     [
@@ -128,17 +123,20 @@ def test__values__eligible_values(values: set[int], eligible_values: set[int]):
         (deck.Card.from_id("TC"), 10, {20}),
     ],
 )
-def test__card__add(card: deck.Card, other: int | deck.Card, result: set[int]):
+def test__card__can_be_added_to_cards_and_ints(
+    card: deck.Card, other: int | deck.Card, result: set[int]
+):
     """
-    Test the ``Card.__add__()`` method.
+    Cards can be added to cards and integers.
     """
-    assert card + other == result
-    assert other + card == result
+    expected = deck.Values(result)
+    assert card + other == expected
+    assert other + card == expected
 
 
-def test__card__add__raises():
+def test__card__cannot_be_added_to_non_numerics():
     """
-    Test that ``Card.__add__()`` raises a ``TypeError``.
+    Cards cannot be added to non-numerics.
     """
     with pytest.raises(TypeError):
         deck.Card.from_id("2S") + "2"  # type: ignore
@@ -162,17 +160,18 @@ def test__card__add__raises():
         (playing_cards.Rank.KING, {10}),
     ],
 )
-def test__card__values(rank: playing_cards.Rank, values: set[int]):
+def test__card__has_values(rank: playing_cards.Rank, values: set[int]):
+    """
+    Cards have values based on their rank.
+    """
     rank: playing_cards.Rank
     suit: playing_cards.Suit
+    expected = deck.Values(values)
     for suit in playing_cards.Suit:
         card = deck.Card(rank, suit)
-        assert card.values == values
+        assert card.values == expected
 
 
-###
-# Deck tests
-###
 def test__deck__can_be_reset():
     """
     Test that decks can be reset.
