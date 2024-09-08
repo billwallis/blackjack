@@ -152,6 +152,7 @@ class Game:
             play_again = input("\nPlay another round? [Y/n] ")
             playing = play_again.lower() in {"y", "yes", ""}
             self.reset_round()
+            print(20 * "-", "\n")
 
         print("\nGame ended with:")
         for player in self.players:

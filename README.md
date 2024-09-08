@@ -19,11 +19,54 @@
 
 Blackjack, also called 21.
 
-## Quick Start
+## Sample Game 📝
+
+Set up a game with some number of players and some number of decks:
+
+```python
+import blackjack
+
+game = blackjack.Game(min_bet=10)
+game.standard_setup(number_of_players=1, number_of_decks=6)
+game.play_game()
+```
+
+A typical game will look something like this:
+
+```
+Dealer
+[T♣ ??] [{10}]
+
+Player_1 has £500 with hand:
+    [3♥ 8♣] {11}  stake: £10
+
+
+Player_1's turn:
+
+Playing hand [3♥ 8♣] {11}
+[h] Hit, [s] Stand, [d] Double down, [sp] Split?
+Player chose DOUBLE_DOWN
+
+Dealer [T♣ 3♣ 4♦] {17}
+
+
+Player_1 [3♥ 8♣ Q♦] {21}
+Outcome: win
+
+Play another round? [Y/n]
+--------------------
+
+Game ended with:
+  - Player_1: £510
+```
+
+## Contributing 🤝
+
+This is just a personal project (so this instruction is just for me).
+
+The Python packaging is managed with [Poetry](https://python-poetry.org/); check which version is in the [poetry.lock](poetry.lock) file.
 
 ```bash
 poetry install --sync --with dev,test
 pre-commit install --install-hooks
-
-blackjack
 ```
