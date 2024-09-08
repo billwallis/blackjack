@@ -141,3 +141,18 @@ class Game:
                 print(player.name, hand.show())
                 print(f"Outcome: {outcome.formatted}")
                 rules.apply_outcome(player, outcome, hand.bet)
+
+    def play_game(self) -> None:
+        """
+        Play a game of Blackjack.
+        """
+        playing = True
+        while playing:
+            self.play_round()
+            play_again = input("\nPlay another round? [Y/n] ")
+            playing = play_again.lower() in {"y", "yes", ""}
+            self.reset_round()
+
+        print("\nGame ended with:")
+        for player in self.players:
+            print(f"  - {player.name}: £{player.money}")
