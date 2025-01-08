@@ -9,7 +9,6 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Bilbottom/blackjack/main.svg)](https://results.pre-commit.ci/latest/github/Bilbottom/blackjack/main)
-[![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
 
 </div>
 
@@ -67,6 +66,6 @@ This is just a personal project (so this instruction is just for me).
 The Python packaging is managed with [Poetry](https://python-poetry.org/); check which version is in the [poetry.lock](poetry.lock) file.
 
 ```bash
-poetry install --sync --with dev,test
+poetry install --with dev,test
 pre-commit install --install-hooks
 ```
