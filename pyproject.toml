@@ -1,23 +1,25 @@
+[project]
+name = "blackjack"
+version = "0.0.0"
+description = "Blackjack, also called 21."
+readme = "README.md"
+authors = [{name = "Bilbottom"}]
+repository = "https://github.com/Bilbottom/blackjack"
+requires-python = ">=3.11,<4.0"
+dynamic = ["dependencies"]
+
+[project.scripts]
+blackjack = "blackjack.__main__:main"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry]
-name = "blackjack"
-version = "0.0.0"
-description = "Blackjack, also called 21."
-readme = "README.md"
-authors = ["Bilbottom"]
-repository = "https://github.com/Bilbottom/blackjack"
 packages = [{include = "blackjack"}]
 
-[tool.poetry.scripts]
-blackjack = "blackjack.__main__:main"
-
-
 [tool.poetry.dependencies]
-python = "^3.11"
 playing-cards = {git = "https://github.com/Bilbottom/playing-cards", rev = "v0.0.2"}
 
 [tool.poetry.group]
