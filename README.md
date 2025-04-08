@@ -1,7 +1,6 @@
 <div align="center">
 
-[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
-[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![tests](https://github.com/Bilbottom/blackjack/actions/workflows/tests.yaml/badge.svg)](https://github.com/Bilbottom/blackjack/actions/workflows/tests.yaml)
 [![coverage](coverage.svg)](https://github.com/dbrgn/coverage-badge)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Bilbottom/blackjack)
@@ -63,9 +62,7 @@ Game ended with:
 
 This is just a personal project (so this instruction is just for me).
 
-The Python packaging is managed with [Poetry](https://python-poetry.org/); check which version is in the [poetry.lock](poetry.lock) file.
-
 ```bash
-poetry install --with dev,test
+pip install -r requirements.txt
 pre-commit install --install-hooks
 ```
