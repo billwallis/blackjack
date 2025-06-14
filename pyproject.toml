@@ -7,7 +7,7 @@ name = "blackjack"
 version = "0.0.0"
 description = "Blackjack, also called 21."
 readme = "README.md"
-authors = [{name = "Bilbottom"}]
+authors = [{name = "billwallis"}]
 requires-python = ">=3.11"
 dynamic = ["dependencies"]
 
