@@ -42,6 +42,9 @@ class Values:
     def __repr__(self):
         return f"Value(value={self._values})"
 
+    def __hash__(self):
+        return hash(frozenset(self._values))
+
     def __eq__(self, other: Values) -> bool:
         if isinstance(other, Values):
             return self._values == other._values

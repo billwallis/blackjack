@@ -39,7 +39,9 @@ line-ending = "auto"
 
 [tool.ruff.lint]
 select = ["F", "I", "N", "PL", "R", "RUF", "S", "UP", "W"]
-ignore = []
+ignore = [
+    "RUF028", #  This suppression comment is invalid because it cannot be after a decorator
+]
 fixable = ["ALL"]
 unfixable = []
 # Allow unused variables when underscore-prefixed
