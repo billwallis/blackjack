@@ -16,6 +16,7 @@ def test__values__can_be_initialised():
     assert value._values == {1, 11}
     assert str(value) == "{1, 11}"
     assert repr(value) == f"Value(value={value._values})"
+    assert hash(value) == hash(deck.Values({1, 11}))
 
 
 def test__values__can_be_compared_for_equality():
