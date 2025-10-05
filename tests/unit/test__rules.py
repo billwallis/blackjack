@@ -128,7 +128,6 @@ def test__player_hand_can_be_given_options(
     )
 
 
-# fmt: off
 @pytest.mark.parametrize(
     "dealer, cards, outcome",
     [
@@ -141,7 +140,6 @@ def test__player_hand_can_be_given_options(
         ("dealer_with_17", ["2C", "3D"], participants.HandOutcome.LOSE),
         ("dealer_with_17", ["TC", "AC", "AD"], participants.HandOutcome.LOSE),
         ("dealer_with_17", ["TC", "TD", "2C"], participants.HandOutcome.LOSE),
-
         # Dealer with bust
         ("dealer_with_bust", ["TC", "AC"], participants.HandOutcome.WIN),
         ("dealer_with_bust", ["TC", "TD"], participants.HandOutcome.WIN),
@@ -151,29 +149,90 @@ def test__player_hand_can_be_given_options(
         ("dealer_with_bust", ["2C", "3D"], participants.HandOutcome.WIN),
         ("dealer_with_bust", ["TC", "AC", "AD"], participants.HandOutcome.WIN),
         ("dealer_with_bust", ["TC", "TD", "2C"], participants.HandOutcome.LOSE),
-
         # Dealer with Ace-first Blackjack
-        ("dealer_with_ace_first_blackjack", ["TC", "AC"], participants.HandOutcome.DRAW),
-        ("dealer_with_ace_first_blackjack", ["TC", "TD"], participants.HandOutcome.LOSE),
-        ("dealer_with_ace_first_blackjack", ["TC", "9D"], participants.HandOutcome.LOSE),
-        ("dealer_with_ace_first_blackjack", ["TC", "4D", "5D"], participants.HandOutcome.LOSE),
-        ("dealer_with_ace_first_blackjack", ["AC", "AD"], participants.HandOutcome.LOSE),
-        ("dealer_with_ace_first_blackjack", ["2C", "3D"], participants.HandOutcome.LOSE),
-        ("dealer_with_ace_first_blackjack", ["TC", "AC", "AD"], participants.HandOutcome.LOSE),
-        ("dealer_with_ace_first_blackjack", ["TC", "TD", "2C"], participants.HandOutcome.LOSE),
-
+        (
+            "dealer_with_ace_first_blackjack",
+            ["TC", "AC"],
+            participants.HandOutcome.DRAW,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["TC", "TD"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["TC", "9D"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["TC", "4D", "5D"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["AC", "AD"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["2C", "3D"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["TC", "AC", "AD"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ace_first_blackjack",
+            ["TC", "TD", "2C"],
+            participants.HandOutcome.LOSE,
+        ),
         # Dealer with ten-first Blackjack
-        ("dealer_with_ten_first_blackjack", ["TC", "AC"], participants.HandOutcome.DRAW),
-        ("dealer_with_ten_first_blackjack", ["TC", "TD"], participants.HandOutcome.LOSE),
-        ("dealer_with_ten_first_blackjack", ["TC", "9D"], participants.HandOutcome.LOSE),
-        ("dealer_with_ten_first_blackjack", ["TC", "4D", "5D"], participants.HandOutcome.LOSE),
-        ("dealer_with_ten_first_blackjack", ["AC", "AD"], participants.HandOutcome.LOSE),
-        ("dealer_with_ten_first_blackjack", ["2C", "3D"], participants.HandOutcome.LOSE),
-        ("dealer_with_ten_first_blackjack", ["TC", "AC", "AD"], participants.HandOutcome.LOSE),
-        ("dealer_with_ten_first_blackjack", ["TC", "TD", "2C"], participants.HandOutcome.LOSE),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["TC", "AC"],
+            participants.HandOutcome.DRAW,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["TC", "TD"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["TC", "9D"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["TC", "4D", "5D"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["AC", "AD"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["2C", "3D"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["TC", "AC", "AD"],
+            participants.HandOutcome.LOSE,
+        ),
+        (
+            "dealer_with_ten_first_blackjack",
+            ["TC", "TD", "2C"],
+            participants.HandOutcome.LOSE,
+        ),
     ],
 )
-# fmt: on
 def test__player_hand_can_be_evaluated(
     dealer: str,
     cards: list[str],
@@ -190,14 +249,16 @@ def test__player_hand_can_be_evaluated(
     assert outcome == rules.get_hand_outcome(player_hand, dealer_hand)
 
 
-# fmt: off
 @pytest.mark.parametrize(
     "dealer_cards, player_cards, outcome",
     [
-        (["9D", "7H", "AS"], ["2H", "4C", "5D", "JH"], participants.HandOutcome.WIN),
+        (
+            ["9D", "7H", "AS"],
+            ["2H", "4C", "5D", "JH"],
+            participants.HandOutcome.WIN,
+        ),
     ],
 )
-# fmt: on
 def test__player_hand_can_be_evaluated__edge_cases(
     dealer_cards: list[str],
     player_cards: list[str],

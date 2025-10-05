@@ -1,9 +1,0 @@
-playing-cards @ git+https://github.com/billwallis/playing-cards@v0.0.2
-
-# dev
-coverage-badge>=1.1.0
-pre-commit>=4.1.0
-
-# test
-pytest>=8.3.5
-pytest-cov>=6.0.0

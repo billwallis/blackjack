@@ -6,8 +6,7 @@ import textwrap
 
 import pytest
 
-import blackjack
-from blackjack import deck, participants
+from blackjack import deck, game, participants
 from blackjack.constants import Colours
 
 
@@ -129,7 +128,7 @@ def test__hand__can_tell_if_it_is_bust(
 
 
 def test__hand__can_hit_the_deck(
-    mock_game: blackjack.Game,
+    mock_game: game.Game,
     mock_hand: participants.Hand,
 ):
     """
@@ -151,7 +150,8 @@ def test__hand__can_hit_the_deck(
 
 
 def test__hand__can_be_dealt_to(
-    mock_game: blackjack.Game, mock_hand: participants.Hand
+    mock_game: game.Game,
+    mock_hand: participants.Hand,
 ):
     """
     Hands can be dealt to from the deck.
@@ -170,7 +170,7 @@ def test__hand__can_be_dealt_to(
 
 
 def test__hand__cannot_be_dealt_to_if_it_has_cards_already(
-    mock_game: blackjack.Game,
+    mock_game: game.Game,
     mock_hand: participants.Hand,
 ):
     """
@@ -183,7 +183,7 @@ def test__hand__cannot_be_dealt_to_if_it_has_cards_already(
 
 
 def test__hand__can_be_shown(
-    mock_game: blackjack.Game,
+    mock_game: game.Game,
     mock_hand: participants.Hand,
 ):
     """
@@ -219,7 +219,7 @@ def test__player_hand__can_be_initialised():
 
 
 def test__player_hand__can_split(
-    mock_game: blackjack.Game,
+    mock_game: game.Game,
     mock_player: participants.Player,
 ):
     """
@@ -251,7 +251,7 @@ def test__player_hand__can_split(
 
 
 def test__player_hand__can_split_aces(
-    mock_game: blackjack.Game,
+    mock_game: game.Game,
     mock_player: participants.Player,
 ):
     """

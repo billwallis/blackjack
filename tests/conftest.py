@@ -1,15 +1,14 @@
 import pytest
 
-import blackjack
-from blackjack import deck, participants
+from blackjack import deck, game, participants
 
 
 @pytest.fixture
-def mock_game() -> blackjack.Game:
+def mock_game() -> game.Game:
     """
     A game with six players and six decks.
     """
-    game_ = blackjack.Game(min_bet=10)
+    game_ = game.Game(min_bet=10)
     game_.standard_setup(number_of_players=6, number_of_decks=6)
 
     return game_
