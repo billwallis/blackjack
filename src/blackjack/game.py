@@ -21,7 +21,7 @@ class Game:
     dealer: participants.Dealer
     players: list[participants.Player]
 
-    def __init__(self, min_bet: int):
+    def __init__(self, min_bet: int) -> None:
         self.min_bet = min_bet
         self.round = 0
         self.players = []

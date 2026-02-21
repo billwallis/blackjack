@@ -1,27 +1,78 @@
+# yaml-language-server: $schema=https://json.schemastore.org/pyproject.json
+
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.8.2,<1.0.0"]
+build-backend = "uv_build"
 
 [project]
 name = "blackjack"
 version = "0.0.0"
 description = "Blackjack, also called 21."
-readme = "README.md"
 authors = [{name = "billwallis"}]
-requires-python = ">=3.11"
-dynamic = ["dependencies"]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "playing-cards @ git+https://github.com/billwallis/playing-cards@v0.0.2",
+]
+scripts.blackjack = "blackjack.__main__:main"
 
-[project.scripts]
-blackjack = "blackjack.__main__:main"
+[dependency-groups]
+dev = [
+    "poethepoet>=0.41.0",
+    "pre-commit>=4.5.1",
+]
+test = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
 
 
-[tool.setuptools]
-packages = ["blackjack"]
-dynamic.dependencies = {file = ["requirements.txt"]}
+[tool.uv]
+required-version = ">=0.8,<1.0"
+default-groups = "all"
+
+[tool.uv.build-backend]
+namespace = true
+
+
+[tool.poe]
+verbosity = -1
+#envfile = ".env"
+
+[tool.poe.tasks]
+install.shell = """
+    uv sync --refresh
+    uv run pre-commit install --install-hooks
+"""
+upgrade.shell = """
+    uv sync --refresh --upgrade
+    uv run pre-commit autoupdate
+"""
+test = "uv run pytest -vvv"
+
+[tool.poe.tasks.lint]
+control.expr = "sys.platform"
+
+[[tool.poe.tasks.lint.switch]]
+case = "win32"
+shell = """
+    echo '=== pre-commit checks ==='
+    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-commit
+    echo '=== pre-push checks ==='
+    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-push
+"""
+
+[[tool.poe.tasks.lint.switch]]
+shell = """
+    echo '\\033[0;34mpre-commit checks\\033[0m'
+    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-commit
+    echo '\\033[0;34mpre-push checks\\033[0m'
+    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-push
+"""
 
 
 [tool.pytest.ini_options]
-addopts = "--cov=blackjack --cov-report term-missing --cov-fail-under=95"
+addopts = "--cov=src --cov-report term-missing --cov-fail-under=100"
 markers = "e2e: end-to-end tests"
 testpaths = ["tests"]
 
@@ -29,7 +80,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 80
 indent-width = 4
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.format]
 quote-style = "double"
@@ -38,9 +89,24 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.ruff.lint]
-select = ["F", "I", "N", "PL", "R", "RUF", "S", "UP", "W"]
+select = [
+    "ANN",   # flake8-annotations
+    "B",     # flake8-bugbear
+    "E",     # pycodestyle-error
+    "F",     # Pyflakes
+    "FURB",  # refurb
+    "I",     # isort
+    "N",     # pep8-naming
+    "PL",    # Pylint
+    "PERF",  # Perflint
+    "RUF",   # Ruff-specific
+    "S",     # flake8-bandit
+    "UP",    # pyupgrade
+    "W",     # pycodestyle-warning
+]
 ignore = [
-    "RUF028", #  This suppression comment is invalid because it cannot be after a decorator
+    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
+    "E501",    # Line too long
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -50,7 +116,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # https://github.com/astral-sh/ruff/issues/4368
 [tool.ruff.lint.extend-per-file-ignores]
 "tests/**/*.py" = [
-    "S101",    #  Use of `assert` detected
-    "PLR2004", #  Magic value used in comparison
-    "PLR0913", #  Too many arguments in function definition
+    "ANN001",   # Missing type annotation for function argument
+    "ANN201",   # Missing return type annotation for public function
+    "S101",     # Use of `assert` detected
+    "PLR2004",  # Magic value used in comparison
+    "PLR0913",  # Too many arguments in function definition
 ]

@@ -7,7 +7,7 @@ import runpy
 
 import pytest
 
-import blackjack
+from blackjack import game as game_
 from blackjack import participants
 
 pytestmark = pytest.mark.e2e
@@ -28,7 +28,7 @@ def test__rounds_can_be_played(monkeypatch: pytest.MonkeyPatch) -> None:
 
     for i in range(1000):
         print(f"\n--- Game {i + 1} ---\n")
-        game = blackjack.Game(min_bet=10)
+        game = game_.Game(min_bet=10)
         game.standard_setup(number_of_players=3, number_of_decks=6)
         game.play_round()
         print(20 * "-")

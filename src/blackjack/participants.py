@@ -65,7 +65,7 @@ class Hand:
     bet: int | None
     playing: bool = True
 
-    def __init__(self, bet: int | None):
+    def __init__(self, bet: int | None) -> None:
         self.bet = bet
         self.cards = []
 
@@ -155,7 +155,7 @@ class PlayerHand(Hand):
     from_split: bool
     insurance: int  # TODO: need to include insurance somewhere
 
-    def __init__(self, bet: int, from_split: bool):
+    def __init__(self, bet: int, from_split: bool) -> None:
         self.from_split = from_split
         self.insurance = 0
         super().__init__(bet)
@@ -184,7 +184,7 @@ class Dealer:
     name: str
     hand: Hand
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "Dealer"
         self.hand = Hand(bet=None)
 
@@ -201,7 +201,7 @@ class Player:
     hands: list[PlayerHand]
     money: float
 
-    def __init__(self, name: str, money: int):
+    def __init__(self, name: str, money: int) -> None:
         """
         Instantiate a player in a game of Blackjack.
 
@@ -215,7 +215,7 @@ class Player:
     def __str__(self) -> str:
         return self.name
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.hands)
 
     @property

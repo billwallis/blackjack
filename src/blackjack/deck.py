@@ -7,6 +7,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import itertools
+from collections.abc import Generator
 
 import playing_cards
 
@@ -24,7 +25,7 @@ class Values:
 
     _values: set[int]
 
-    def __init__(self, values: set[int]):
+    def __init__(self, values: set[int]) -> None:
         self._values = values
 
     @classmethod
@@ -36,13 +37,13 @@ class Values:
             {1, 11} if rank == playing_cards.Rank.ACE else {min(rank.value, 10)}
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._values) if self._values else "BUST!"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Value(value={self._values})"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(frozenset(self._values))
 
     def __eq__(self, other: Values) -> bool:
@@ -54,13 +55,16 @@ class Values:
         return max(self._values) < max(other._values)
 
     def __add__(self, other: int | Values) -> Values:
-        if not isinstance(other, int | Values):
+        if isinstance(other, int):
+            other_ = {other}
+        elif isinstance(other, Values):
+            other_ = other._values
+        else:
             return NotImplemented
 
-        other_: set[int] = {other} if isinstance(other, int) else other._values
         return Values({sum(p) for p in itertools.product(self._values, other_)})
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[int]:
         yield from self._values
 
     @property
@@ -81,7 +85,11 @@ class Card(playing_cards.Card):
 
     values: Values = dataclasses.field(repr=False)
 
-    def __init__(self, rank: playing_cards.Rank, suit: playing_cards.Suit):
+    def __init__(
+        self,
+        rank: playing_cards.Rank,
+        suit: playing_cards.Suit,
+    ) -> None:
         self.rank = rank
         self.suit = suit
         self.values = Values.from_rank(rank)

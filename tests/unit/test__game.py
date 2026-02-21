@@ -13,8 +13,15 @@ def test__game__can_be_initialised():
     """
     game_ = game.Game(min_bet=10)
 
-    assert pytest.raises(AttributeError, lambda: game_.deck)
-    assert pytest.raises(AttributeError, lambda: game_.dealer)
+    with pytest.raises(AttributeError):
+        assert (
+            game_.deck
+        )  # `assert` is just to stop "statement has no effect" warning
+    with pytest.raises(AttributeError):
+        assert (
+            game_.dealer
+        )  # `assert` is just to stop "statement has no effect" warning
+
     assert game_.players == []
     assert game_.min_bet == 10
     assert game_.round == 0
@@ -45,7 +52,9 @@ def test__game__cannot_add_deck_if_one_already_exists():
     """
     game_ = game.Game(min_bet=10)
     game_.add_deck(1)
-    assert pytest.raises(AssertionError, lambda: game_.add_deck(1))
+
+    with pytest.raises(AssertionError):
+        game_.add_deck(1)
 
 
 def test__game__cannot_add_dealer_if_one_already_exists():
@@ -54,7 +63,9 @@ def test__game__cannot_add_dealer_if_one_already_exists():
     """
     game_ = game.Game(min_bet=10)
     game_.add_dealer()
-    assert pytest.raises(AssertionError, lambda: game_.add_dealer())
+
+    with pytest.raises(AssertionError):
+        game_.add_dealer()
 
 
 def test__game__cannot_add_a_player_with_an_existing_name():
