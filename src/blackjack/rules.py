@@ -4,6 +4,8 @@ Blackjack-specific rules and logic.
 
 from __future__ import annotations
 
+from typing import assert_never
+
 from blackjack import constants, participants
 from blackjack import deck as deck_
 
@@ -84,6 +86,8 @@ def action(
             player_hand.playing = False
         case participants.PlayerOption.SPLIT:
             player_hand.split(deck, player)
+        case _:  # pragma: no cover
+            assert_never(option)  # pragma: no cover
 
 
 def get_options_for_player_hand(
