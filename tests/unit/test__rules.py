@@ -58,7 +58,7 @@ def test__player_hand_can_be_played(
         (participants.PlayerOption.TAKE_INSURANCE, False, 1, 2),
     ],
 )
-def test__player_hand_can_take_an_action(
+def test__player_hand_can_take_an_action(  # noqa: PLR0917
     mock_game: game.Game,
     mock_player: participants.Player,
     option: participants.PlayerOption,
